@@ -88,6 +88,11 @@ void WorldObjectChest::PrintInventory(Console* console, int x, int y) {
 	for (int i = 0; i < 10; i++) {
 		console->Plot(y + i, x + 0, tmpChest[i]);
 	}
+
+	if (isCursorInChest) {
+		highliteInvSpace(getInventoryCursor(), console);
+	}
+
 }
 
 

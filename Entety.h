@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "ItemClass.h"
 #include "Engine.h"
+#include "ContainerCursor.h"
 
 #define CHEST_X_SIZE 4
 #define CHEST_Y_SIZE 4
@@ -24,7 +25,7 @@ private:
 	bool Blocking = true;
 };
 
-class WorldObjectChest : public WorldObject {
+class WorldObjectChest : public WorldObject, public ContainerCursor {
 public:
 	WorldObjectChest(int x, int y);
 	WorldObjectChest();
@@ -33,6 +34,8 @@ public:
 	void PrintInventory(Console* console, int x, int y);
 private:
 	ItemClass ItemList[16];
+
+	bool isCursorInChest = false;
 
 	//std::list<ItemClass> Item;
 };

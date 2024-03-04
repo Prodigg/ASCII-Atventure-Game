@@ -136,9 +136,7 @@ InventoryClass::InventoryClass() {
 
 bool InventoryClass::openInventory() {
 	if (!(isInventoryOpen)) {
-		InvCursorX = 0;
-		InvCursorY = 0;
-		InvCursorIndex = 0;
+		setParameters(0, 0, 0);
 		isInventoryOpen = true;
 		return true;
 	}
@@ -183,7 +181,10 @@ void InventoryClass::PrintInventory(Console* console, int x, int y) {
 		console->Plot(y + 10 + i, x, tmpHand[i]);
 	}
 
-	highliteInvSpace(InvCursorIndex, console, x, y);
+	if (isCursorInInventory) {
+		highliteInvSpace(getInventoryCursor(), console, x, y);
+	}
+
 	return;
 }
 
@@ -213,63 +214,12 @@ ItemClass* InventoryClass::getEquipment(int Index) {
 	return &EquipList[Index];
 }
 
-bool InventoryClass::highliteInvSpace(int Index, Console* console, int InvPos_x, int InvPos_y) {
-	if (!isInventoryOpen) return false;
-	console->PlortColor(InvPos_y + 2 + (std::floor(Index / 4) * 2), 2 + ((Index % 4) * 4), 0xF0);
-	return true;
-}
-
 void InventoryClass::removeInventoryItem(int Index) {
 	ItemClass* voidItem = new ItemClass;
 	voidItem->SetItem(0, L" ");
 	inventoryList[Index] = *voidItem;
 	delete voidItem;
 }
-
-int InventoryClass::calculateInvIndex(int x, int y) {
-	return y * 4 + x;
-}
-
-bool InventoryClass::setInventoryCursor(int x, int y) {
-	if (x < 0 || x > 3 || y < 0 || y > 3) return false;
-	InvCursorIndex = calculateInvIndex(x, y);
-	InvCursorX = x;
-	InvCursorY = y;
-	return true;
-}
-
-bool InventoryClass::setInventoryCursor(int Index) {
-	if (Index < 0 || Index > 15) return false;
-	InvCursorIndex = Index;
-	InvCursorX = Index % 4;
-	InvCursorY = std::floor(Index / 4);
-	return true;
-}
-
-bool InventoryClass::movecusor(int direction) {
-	switch (direction) {
-	case 0: // Right
-		return setInventoryCursor(InvCursorX + 1, InvCursorY);
-		break;
-	case 1: // Left
-		return setInventoryCursor(InvCursorX - 1, InvCursorY);
-		break;
-	case 2:	// Down
-		return setInventoryCursor(InvCursorX, InvCursorY + 1);
-		break;
-	case 3:	// Up
-		return setInventoryCursor(InvCursorX, InvCursorY - 1);
-		break;
-	default:
-		return false;
-		break;
-	}
-}
-
-int InventoryClass::getInventoryCursor() {
-	return InvCursorIndex;
-}
-
 
 bool InventoryClass::setItemInHand(ItemClass* Item) {
 	ItemClass* voidItem = new ItemClass;
@@ -319,4 +269,13 @@ bool InventoryClass::isInventoryItemExistant(int Index) {
 
 ItemClass* InventoryClass::getItemInHand() {
 	return &ItemInHand;
+}
+
+bool InventoryClass::getIsCursorInInventory() {
+	return isCursorInInventory;
+}
+
+void InventoryClass::setIsCursorInInventory(bool val) {
+	isCursorInInventory = val;
+	return;
 }

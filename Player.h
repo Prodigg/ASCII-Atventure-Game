@@ -1,5 +1,6 @@
 #pragma once
 #include "World.h"
+#include "ContainerCursor.h"
 
 #define xSrartPosition 5
 #define ySrartPosition 5
@@ -12,7 +13,7 @@ enum Directions {
 };
 
 
-class InventoryClass {
+class InventoryClass : public ContainerCursor {
 public:
 	InventoryClass();
 	void setInventoryItem(ItemClass* Item, int index);
@@ -28,17 +29,13 @@ public:
 	void setEquipment(ItemClass* Item, int Index);
 	ItemClass* getEquipment(int Index);
 
-	bool highliteInvSpace(int Index, Console* console, int InvPos_x, int InvPos_y);
-
-	bool setInventoryCursor(int x, int y);
-	bool setInventoryCursor(int Index);
-	bool movecusor(int direction);
-	int getInventoryCursor();
-
 	bool setItemInHand(ItemClass* Item);
 	bool deleteItemInHand();
 	bool isItemInHandExistant();
 	ItemClass* getItemInHand();
+
+	bool getIsCursorInInventory();
+	void setIsCursorInInventory(bool val);
 private:
 	ItemClass inventoryList[16];
 
@@ -53,12 +50,8 @@ private:
 	ItemClass ItemInHand;
 
 	bool isInventoryOpen = false;
-	int InvCursorX = 0;
-	int InvCursorY = 0;
 
-	int InvCursorIndex = 0;
-
-	int calculateInvIndex(int x, int y);
+	bool isCursorInInventory = false;
 };
 
 

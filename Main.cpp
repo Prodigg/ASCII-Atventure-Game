@@ -118,12 +118,14 @@ int main() {
 				if (MainCaracter.interact(&GlobalWorld)) {
 					MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
 					MainCaracter.PrintInventory(&MainConsole, 20, 17);
+					MainCaracter.setIsCursorInInventory(true);
 
 				} else showMsgBox(0);
 				break;
 			case 'i': // invantory
 				if (MainCaracter.openInventory()) {
 					MainCaracter.PrintInventory(&MainConsole, 0, 20);
+					MainCaracter.setIsCursorInInventory(true);
 				}
 				break;
 			default:
@@ -136,6 +138,8 @@ int main() {
 
 			switch (menu) {
 			case 'f':
+				MainCaracter.setIsCursorInInventory(false);
+				MainCaracter.getActiveChest()->setInventoryCursor(false);
 				MainCaracter.endInteract();
 				//MainConsole.Clear();
 				//MainTerminal.clear();
@@ -181,6 +185,7 @@ int main() {
 			switch (menu) {
 			case 'i':
 				MainCaracter.closeInventory();
+				MainCaracter.setIsCursorInInventory(false);
 				break;
 			case 'w':
 				MainCaracter.movecusor(GO_UP);
