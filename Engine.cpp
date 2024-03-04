@@ -4,6 +4,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <Windows.h>
+#include <vector>
 
 Console::Console() {
 	// init PrintArray
@@ -25,20 +26,25 @@ Console ::~Console() {
 }
 
 void Console::Plot(int x, int y, std::wstring str, WORD TextColor) {
-	std::wstring* wstringArray = new std::wstring[str.length() + 1];
-	for (size_t i = 0; i < str.length() + 1; i++) {
-		wstringArray[i] = L" ";
+	/*
+	std::vector<std::wstring>* wstringVector = new std::vector<std::wstring>;
+	//std::wstring* wstringArray = new std::wstring[str.size()];
+	for (size_t i = 0; i < str.size(); i++) {
+		//wstringArray[i] = L" ";
+		//wstringVector->push_back(L" ");
 	}
-	for (size_t i = 0; i < str.length() + 1; i++) {
-		wstringArray[i].replace(1, 1, str); // ignore warning, false positive
+	
+	for (size_t i = 0; i < str.size(); i++) {
+		//wstringArray[i].replace(1, 1, str, i); // ignore warning, false positive
+		wstringVector->push_back(str.at(i));
 	}
-	//wstringArray[str.length() + 1] = L"\0";
-	for (size_t i = 0; i < str.length() + 1; i++) {
-		Console::PrintColorArray[x][y] = TextColor;
-		Console::PrintArray[x][y] = str;
+	//wstringArray[str.length() + 1] = L"\0";*/
+	for (size_t i = 0; i < str.size(); i++) {
+		Console::PrintColorArray[x][i + y] = TextColor;
+		Console::PrintArray[x][i + y] = str.at(i);
 	}
 
-	delete[] wstringArray;
+	//delete[] wstringArray;
 	return;
 }
 
@@ -71,6 +77,10 @@ WORD Console::getColor(int x, int y) {
 	return Console::PrintColorArray[x][y];
 }
 
+void Console::PlortColor(int x, int y, WORD TextColor) {
+	Console::PrintColorArray[x][y] = TextColor;
+}
+
 Terminal::Terminal(int ScreenSizeX, int ScreenSizeY, Console* Console) : 
 	console(Console), 
 	screenSizeX(ScreenSizeX),
@@ -85,6 +95,15 @@ Terminal::~Terminal() {
 }
 
 void Terminal::print() {
+	for (size_t i = Terminal::screenSizeX - 1; i > 0; i--) {
+		for (size_t t = Terminal::screenSizeY - 1; t > 0; t--) {
+			if (Terminal::console->getChar(i, t) == L" ") { 
+				console->Plot(i, t, L""); 
+			}
+			else break;
+		}
+	}
+
 
 	for (size_t i = 0; i < Terminal::screenSizeX; i++) {
 		for (size_t t = 0; t < Terminal::screenSizeY; t++) {

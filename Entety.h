@@ -30,7 +30,7 @@ public:
 	WorldObjectChest();
 	ItemClass getItem(int Pos);
 	void putItem(int Pos, ItemClass Item);
-	void PrintInventory(Console* console);
+	void PrintInventory(Console* console, int x, int y);
 private:
 	ItemClass ItemList[16];
 

@@ -14,6 +14,7 @@ public:
 	int getItemID();
 	void SetItem(int ItemID, std::wstring _Icon);
 	std::wstring getIcon();
+	bool operator==(const ItemClass& other) const;
 private:
 	int ItemID;
 	std::wstring Icon;

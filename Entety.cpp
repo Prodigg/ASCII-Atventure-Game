@@ -73,7 +73,7 @@ L"│   │   │   │   │",
 L"└───┴───┴───┴───┘",
 };
 
-void WorldObjectChest::PrintInventory(Console* console) {
+void WorldObjectChest::PrintInventory(Console* console, int x, int y) {
 	std::wstring tmpChest[10];
 	for (size_t i = 0; i < 10; i++) {
 		tmpChest[i] = ChestUI[i];
@@ -85,8 +85,8 @@ void WorldObjectChest::PrintInventory(Console* console) {
 			ListPtr++;
 		}
 	}
-	for (size_t i = 0; i < 10; i++) {
-		console->Plot(17 + i, 0, tmpChest[i]);
+	for (int i = 0; i < 10; i++) {
+		console->Plot(y + i, x + 0, tmpChest[i]);
 	}
 }
 

@@ -15,7 +15,7 @@ Terminal MainTerminal(PRINT_ARRAY_X, PRINT_ARRAY_Y, &MainConsole);
 
 /////////// UI Interface \\\\\\\\\\\\
 
-std::wstring Menu[10] = {
+std::wstring Menu[12] = {
 	L"┌──────────────────┐",
 	L"│     Actions      │",
 	L"├────────────────┬─┤",
@@ -25,6 +25,8 @@ std::wstring Menu[10] = {
 	L"│ Move Up        │w│",
 	L"│ Interact       │f│",
 	L"│ Close          │f│",
+	L"│ Inventory      │i│",
+	L"│ Close          │i│",
 	L"└────────────────┴─┘"
 };
 
