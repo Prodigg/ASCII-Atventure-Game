@@ -140,6 +140,30 @@ int main() {
 				//MainConsole.Clear();
 				//MainTerminal.clear();
 				break;
+			case 'w':
+				MainCaracter.movecusor(GO_UP);
+				break;
+			case 'a':
+				MainCaracter.movecusor(GO_LEFT);
+				break;
+			case 's':
+				MainCaracter.movecusor(GO_DOWN);
+				break;
+			case 'd':
+				MainCaracter.movecusor(GO_RIGHT);
+				break;
+			case 'e':	// put Item In hand / set item out of hand
+				if (MainCaracter.isItemInHandExistant()) { // put Item out of hand
+					if (MainCaracter.isInventoryItemExistant(MainCaracter.getInventoryCursor())) {
+						MainCaracter.setInventoryItem(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()), MainCaracter.getInventoryCursor());
+						MainCaracter.deleteItemInHand();
+					}
+				}
+				else { // put Item in Hand
+					MainCaracter.setItemInHand(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()));
+					MainCaracter.removeInventoryItem(MainCaracter.getInventoryCursor());
+				}
+				break;
 			default:
 				showMsgBox(0);
 				break;
@@ -170,13 +194,23 @@ int main() {
 			case 'd':
 				MainCaracter.movecusor(GO_RIGHT);
 				break;
-			case 'f':	// put Item In hand / set item out of hand
+			case 'e':	// put Item In hand / set item out of hand
 				if (MainCaracter.isItemInHandExistant()) { // put Item out of hand
-
+					if (!MainCaracter.isInventoryItemExistant(MainCaracter.getInventoryCursor())) {
+						MainCaracter.setInventoryItem(MainCaracter.getItemInHand(), MainCaracter.getInventoryCursor());
+						MainCaracter.deleteItemInHand();
+					}
 				}
 				else { // put Item in Hand
-
+					MainCaracter.setItemInHand(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()));
+					MainCaracter.removeInventoryItem(MainCaracter.getInventoryCursor());
 				}
+				break;
+			case 'r':	// spawn test Item
+				testItem->SetItem(-1, L"k");
+				MainCaracter.setInventoryItem(testItem, 2);
+				testItem->SetItem(-1, L"P");
+				MainCaracter.setInventoryItem(testItem, 4);
 				break;
 			default:
 				showMsgBox(0);

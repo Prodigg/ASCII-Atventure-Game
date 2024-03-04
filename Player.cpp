@@ -177,7 +177,7 @@ void InventoryClass::PrintInventory(Console* console, int x, int y) {
 	for (size_t i = 0; i < 3; i++) {
 		tmpHand[i] = InventoryPickup[i];
 	}
-	tmpHand[1].replace(3, 1, ItemInHand.getIcon());
+	tmpHand[1].replace(2, 1, ItemInHand.getIcon());
 
 	for (size_t i = 0; i < 3; i++) {
 		console->Plot(y + 10 + i, x, tmpHand[i]);
@@ -315,4 +315,8 @@ bool InventoryClass::isInventoryItemExistant(int Index) {
 	}
 	delete voidItem;
 	return true;
+}
+
+ItemClass* InventoryClass::getItemInHand() {
+	return &ItemInHand;
 }

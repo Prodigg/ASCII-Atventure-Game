@@ -12,8 +12,7 @@ enum Directions {
 };
 
 
-class InventoryClass
-{
+class InventoryClass {
 public:
 	InventoryClass();
 	void setInventoryItem(ItemClass* Item, int index);
@@ -34,10 +33,12 @@ public:
 	bool setInventoryCursor(int x, int y);
 	bool setInventoryCursor(int Index);
 	bool movecusor(int direction);
+	int getInventoryCursor();
 
 	bool setItemInHand(ItemClass* Item);
 	bool deleteItemInHand();
 	bool isItemInHandExistant();
+	ItemClass* getItemInHand();
 private:
 	ItemClass inventoryList[16];
 
