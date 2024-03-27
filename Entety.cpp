@@ -362,6 +362,8 @@ void NPC::optionSelected(int option) {
 		// drop Item
 		ItemOnFloor* NewItemOnFloor = static_cast<ItemOnFloor*>(malloc(sizeof ItemOnFloor));
 		NewItemOnFloor = new ItemOnFloor(x, y, Inventory.at(ItemPos).Item, WordlMgr);
+
+		// delete Item form NPC Inv
 	}
 }
 
