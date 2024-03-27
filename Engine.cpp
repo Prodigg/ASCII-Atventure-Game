@@ -88,6 +88,8 @@ Terminal::Terminal(int ScreenSizeX, int ScreenSizeY, Console* Console) :
 {
 	_setmode(_fileno(stdout), _O_WTEXT); // set CMD text Mode
 	Terminal::hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	Terminal::HWNDconsole = GetConsoleWindow();
+	resizeWindow(1400, 900);
 }
 
 Terminal::~Terminal() {
@@ -97,8 +99,8 @@ Terminal::~Terminal() {
 void Terminal::print() {
 	for (size_t i = Terminal::screenSizeX - 1; i > 0; i--) {
 		for (size_t t = Terminal::screenSizeY - 1; t > 0; t--) {
-			if (Terminal::console->getChar(i, t) == L" ") { 
-				console->Plot(i, t, L""); 
+			if (Terminal::console->getChar(i, t) == L" " && Terminal::console->getColor(i, t) == 0x07) { 
+				console->Plot(i, t, L"}"); 
 			}
 			else break;
 		}
@@ -107,8 +109,10 @@ void Terminal::print() {
 
 	for (size_t i = 0; i < Terminal::screenSizeX; i++) {
 		for (size_t t = 0; t < Terminal::screenSizeY; t++) {
-			SetConsoleTextAttribute(Terminal::hConsole, Terminal::console->getColor(i, t));
-			std::wcout << Terminal::console->getChar(i, t);
+			if (!((Terminal::console->getChar(i, t) == L"}") && Terminal::console->getColor(i, t) == 0x07)) {
+				SetConsoleTextAttribute(Terminal::hConsole, Terminal::console->getColor(i, t));
+				std::wcout << Terminal::console->getChar(i, t);
+			}
 		}
 		std::wcout << std::endl;
 	}
@@ -124,4 +128,8 @@ char Terminal::getKeyAction() {
 void Terminal::clear() {
 	system("cls");
 	return;
+}
+
+void Terminal::resizeWindow(int width, int hight) {
+	MoveWindow(HWNDconsole, r.left, r.top, width, hight, TRUE);
 }

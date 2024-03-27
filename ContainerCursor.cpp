@@ -5,10 +5,6 @@ int ContainerCursor::calculateInvIndex(int x, int y) {
 	return y * 4 + x;
 }
 
-void ContainerCursor::highliteInvSpace(int Index, Console* console) {
-	highliteInvSpace(Index, console, InvCursorX, InvCursorY);
-}
-
 bool ContainerCursor::setInventoryCursor(int x, int y) {
 	if (x < 0 || x > 3 || y < 0 || y > 3) return false;
 	InvCursorIndex = calculateInvIndex(x, y);
@@ -50,7 +46,9 @@ int ContainerCursor::getInventoryCursor() {
 }
 
 void ContainerCursor::highliteInvSpace(int Index, Console* console, int InvPos_x, int InvPos_y) {
-	console->PlortColor(InvPos_y + 2 + (std::floor(Index / 4) * 2), 2 + ((Index % 4) * 4), 0xF0);
+	int tmp1 = InvPos_y + 2 + (std::floor(Index / 4) * 2);
+	int tmp2 = 2 + ((Index % 4) * 4);
+	console->PlortColor(InvPos_y + 2 + (std::floor(Index / 4) * 2),InvPos_x + 2 + ((Index % 4) * 4), 0xF0);
 	return;
 }
 

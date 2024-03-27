@@ -1,7 +1,12 @@
 ﻿#pragma once
+#ifndef __ENTETY__
+#define __ENTETY__
+
+
 #include "ItemClass.h"
 #include "Engine.h"
 #include "ContainerCursor.h"
+#include "TextBox.h"
 
 #define CHEST_X_SIZE 4
 #define CHEST_Y_SIZE 4
@@ -25,6 +30,20 @@ private:
 	bool Blocking = true;
 };
 
+enum NPCStates {
+	NPC_IDLE = 0,
+	NPC_DIALOGE = 1,
+	NPC_WALKING = 2,
+	NPC_DEAD = 3
+};
+
+struct AliveEntetyStats {
+	int health;
+	int damage;
+	int armor;
+};
+
+
 class WorldObjectChest : public WorldObject, public ContainerCursor {
 public:
 	WorldObjectChest(int x, int y);
@@ -32,12 +51,29 @@ public:
 	ItemClass getItem(int Pos);
 	void putItem(int Pos, ItemClass Item);
 	void PrintInventory(Console* console, int x, int y);
+	bool isItemExistant(int Pos);
+	void removeItem(int Pos);
+
+	void setIsCursorInChest(bool val);
+	bool getIsCursorInChest();
 private:
 	ItemClass ItemList[16];
 
 	bool isCursorInChest = false;
 
 	//std::list<ItemClass> Item;
+};
+
+struct posData {
+	int x;
+	int y;
+};
+
+struct ItemOnGroundData {
+	int x; 
+	int y;
+	void* _Item;
+	int ITEM_ID;
 };
 
 class WorldEntetymanager {
@@ -47,8 +83,64 @@ public:
 	~WorldEntetymanager();
 	bool isEntetyBlocking(int x, int y);
 	WorldObjectChest* getChest(int x, int y);
+	
+
+	// returns ITEM_ID
+	int registerItem(int x, int y, void* _Item);
+	void unregisterItem(int ITEM_ID);
+	void* getItem(int x, int y);
+	std::wstring getItemSprite(int x, int y);
+
+	// returns NPC_ID
+	int registerNPC(int x, int y, void* _NPC);
+	void unregisterNPC(int NPC_ID);
+	void* getNPC(int x, int y);
 private:
 	WorldObjectChest ChestArray[CHEST_WORLD_COUNT];
+	std::vector<void*> NPCArray;
+	std::vector<posData> NPCPos;
+	std::vector<ItemOnGroundData> ItemOnFloorArray;
+};
+
+struct NPCItemSaveData {
+	ItemClass Item;
+	int NPCItemID;
+
+	NPCItemSaveData(const ItemClass& Item, int NPCItemID)
+		: Item(Item), NPCItemID(NPCItemID)
+	{}
+};
+
+class NPC : public WorldObject, public DialogeBox {
+public:
+	NPC(int x, int y, int displayX, int displayY, std::vector<std::vector<std::wstring>> MainText, std::vector<std::vector<Option>> Options, WorldEntetymanager* WorldMgr, std::vector<ItemClass> Inventory);
+	~NPC();
+	void optionSelected(int option);
+private:
+	int lastMove = 0;
+	int npcState = 0;
+	int NPC_ID;
+
+	int displayX;
+	int displayY;
+
+	AliveEntetyStats stats;
+	WorldEntetymanager* WordlMgr;
+	std::vector<NPCItemSaveData> Inventory;
+};
+
+class ItemOnFloor : public WorldObject {
+public:
+	ItemOnFloor(int x, int y, ItemClass Item, WorldEntetymanager* EntetyMgr);
+	ItemClass* getItem();
+	~ItemOnFloor();
+
+private:
+	int ITEM_ID;
+	ItemClass Item;
+	WorldEntetymanager* EntetyMgr;
 };
 
 
+
+#endif // !__ENTETY__

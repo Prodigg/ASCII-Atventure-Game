@@ -1,4 +1,9 @@
 ﻿#pragma once
+#ifndef __GLOBAL_DEFINITIONS__
+
+#define __GLOBAL_DEFINITIONS__
+
+
 #include <string>
 #include <fcntl.h>
 
@@ -15,7 +20,7 @@ Terminal MainTerminal(PRINT_ARRAY_X, PRINT_ARRAY_Y, &MainConsole);
 
 /////////// UI Interface \\\\\\\\\\\\
 
-std::wstring Menu[12] = {
+std::wstring Menu[17] = {
 	L"┌──────────────────┐",
 	L"│     Actions      │",
 	L"├────────────────┬─┤",
@@ -27,6 +32,11 @@ std::wstring Menu[12] = {
 	L"│ Close          │f│",
 	L"│ Inventory      │i│",
 	L"│ Close          │i│",
+	L"│ Switch Inv     │q│",
+	L"│ Pickup Item    │e│",
+	L"│ Put Item       │e│",
+	L"│ Drop Item      │r│",
+	L"│ Pickup Item    │r│",
 	L"└────────────────┴─┘"
 };
 
@@ -47,3 +57,7 @@ std::wstring MsgBox[1][8]{
 
 
 
+
+
+
+#endif // !__GLOBAL_DEFINITIONS__

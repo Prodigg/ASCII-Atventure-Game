@@ -11,7 +11,8 @@
 #include "GlobalDefinitions.h"
 #include "Player.h"
 #include "Entety.h"
-#include "Engine.h"
+//#include "Engine.h"
+#include "TextBox.h"
 
 /* Windows CMD Colors
 *		Zuertst backround, dann text color Bsp: text: red, backround yellow 0x6C
@@ -25,21 +26,22 @@
     7 = Hellgrau  F = Weiß
 */
 
+void defultSFfunc() {};
 
 bool ActionAvalable(int x, int y, int i) {
-	if (i == 3 && (GlobalWorld.isBlocking(x + 1, y) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen())) { //is Wall to the right
+	if (i == 3 && (GlobalWorld.isBlocking(x + 1, y) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen() || MainCaracter.getIsDialogeActive())) { //is Wall to the right
 		return false;
 	}
 
-	if (i == 4 && (GlobalWorld.isBlocking(x - 1, y) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen())) { //is Wall to the left
+	if (i == 4 && (GlobalWorld.isBlocking(x - 1, y) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen() || MainCaracter.getIsDialogeActive())) { //is Wall to the left
 		return false;
 	}
 
-	if (i == 5 && (GlobalWorld.isBlocking(x, y + 1) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen())) { //is Wall down
+	if (i == 5 && (GlobalWorld.isBlocking(x, y + 1) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen() || MainCaracter.getIsDialogeActive())) { //is Wall down
 		return false;
 	}
 
-	if (i == 6 && (GlobalWorld.isBlocking(x, y - 1) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen())) { //is Wall above
+	if (i == 6 && (GlobalWorld.isBlocking(x, y - 1) == true || MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen() || MainCaracter.getIsDialogeActive())) { //is Wall above
 		return false;
 	}
 
@@ -47,15 +49,31 @@ bool ActionAvalable(int x, int y, int i) {
 		return false;
 	}
 
-	if (i == 8 && !MainCaracter.getIsChestOpen()) { // not a chest to return from
+	if (i == 8 && !(MainCaracter.getIsChestOpen() || MainCaracter.getIsDialogeActive())) { // not a chest to return from
 		return false;
 	}
 
-	if (i == 9 && (MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen())) { // inventory or other container open
+	if (i == 9 && (MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen() || MainCaracter.getIsDialogeActive())) { // inventory or other container open
 		return false;
 	}
 
 	if (i == 10 && !MainCaracter.getIsInventoryOpen()) { // no inventory to return from
+		return false;
+	}
+
+	if (i == 11 && !MainCaracter.getIsChestOpen()) { // no Inv to Switch
+		return false;
+	}
+	if (i == 12 && (!(MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen()) || MainCaracter.isItemInHandExistant())) { // pickup item
+		return false;
+	}
+	if (i == 13 && (!(MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen()) || !MainCaracter.isItemInHandExistant())) { // drop Item
+		return false;
+	}
+	if (i == 14 && (!(MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen()))) { // drop Item on floor
+		return false;
+	}
+	if (i == 15 && (MainCaracter.getIsChestOpen() || MainCaracter.getIsInventoryOpen() || !(GlobalWorld.EntetyMgr.getEntety(MainCaracter.getX(), MainCaracter.getY()) == 4))) { // pickup Item from floor
 		return false;
 	}
 
@@ -64,7 +82,7 @@ bool ActionAvalable(int x, int y, int i) {
 
 void drawMenu(int x, int y) {
 	int t = 0;
-	for (int i = 0; i < 12; i++) {
+	for (int i = 0; i < 17; i++) {
 		if (ActionAvalable(x, y, i) == true) {
 			MainConsole.Plot(10 + t, 0, Menu[i]);
 			t++;
@@ -82,15 +100,63 @@ void showMsgBox(int MsgID) { //must define Msg Box before
 	}
 }
 
+int TestFormate[] = {
+	TEXT_HEAD,
+	TEXT_BODY,
+	TEXT_BODY,
+	TEXT_SEPERATOR,
+	TEXT_BODY,
+	TEXT_END
+};
+
+WorldObjectChest* activeChest;
+
+std::vector<std::vector<std::wstring>> TestNPCText = {
+	{
+		L"Hallo, ich heisse Test.",
+		L"Ich bin ein test NPC.",
+		L"Wie geht es dir?"
+	},
+	{
+		L"das ist schön zuhören"
+	},
+	{
+		L"schade"
+	}
+};
+
+void spezalTestFunction() {
+	std::cout << "Test";
+}
+
+std::vector<std::vector<Option>> TestNPCOptions = {
+	{
+		{L"gut", 1, 0, 0},
+		{L"schlecht", 2, 0, 0}
+	}, 
+	{},
+	{}
+};
+
+//DialogeBox TextDialoge(TestMainText, TestOptions);
+std::vector<ItemClass> tmpInv;
+
 int main() {
 	char menu = ' ';
 	int x;
 	int y;
+	ItemClass TesttmpItem;
+	TesttmpItem.SetItem(-1, L"O");
+	ItemOnFloor* TestItemOnFloor = new ItemOnFloor(16, 10, TesttmpItem, GlobalWorld.getEntetyMgr());
+	
+	NPC TestNPC(14, 10, 0, 30, TestNPCText, TestNPCOptions, GlobalWorld.getEntetyMgr(), tmpInv);
 
 	while (true) {
 		x = MainCaracter.getX();
 		y = MainCaracter.getY();
-		
+
+		//TextDialoge.display(0, 30, &MainConsole);
+
 		GlobalWorld.drawWorld(x, y, 0, 0);
 		drawMenu(x, y);
 		MainTerminal.print();
@@ -100,7 +166,7 @@ int main() {
 		MainConsole.ClearColor();
 		MainTerminal.clear();
 
-		if (!MainCaracter.getIsChestOpen() && !MainCaracter.getIsInventoryOpen()) {
+		if (!MainCaracter.getIsChestOpen() && !MainCaracter.getIsInventoryOpen() && !MainCaracter.getIsDialogeActive()) {
 			switch (menu) {
 			case 'd': // move right
 				MainCaracter.go(GO_RIGHT, &GlobalWorld);
@@ -116,10 +182,15 @@ int main() {
 				break;
 			case 'f': // interact
 				if (MainCaracter.interact(&GlobalWorld)) {
-					MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
-					MainCaracter.PrintInventory(&MainConsole, 20, 17);
-					MainCaracter.setIsCursorInInventory(true);
-
+					if (MainCaracter.getIsChestOpen()) { // chest
+						MainCaracter.setIsCursorInInventory(false);
+						MainCaracter.getActiveChest()->setIsCursorInChest(true);
+						MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
+						MainCaracter.PrintInventory(&MainConsole, 20, 17);
+					}
+					else if (MainCaracter.getIsDialogeActive()) { // NPC
+						MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
+					}
 				} else showMsgBox(0);
 				break;
 			case 'i': // invantory
@@ -128,6 +199,9 @@ int main() {
 					MainCaracter.setIsCursorInInventory(true);
 				}
 				break;
+			case 'r': // pickup Item
+				MainCaracter.pickupItem(&GlobalWorld.EntetyMgr);
+				break;
 			default:
 				showMsgBox(0);
 				break;
@@ -135,38 +209,48 @@ int main() {
 		} 
 		
 		else if (MainCaracter.getIsChestOpen()) {
-
+			activeChest = MainCaracter.getActiveChest();
 			switch (menu) {
 			case 'f':
 				MainCaracter.setIsCursorInInventory(false);
-				MainCaracter.getActiveChest()->setInventoryCursor(false);
+				activeChest->setIsCursorInChest(true);
 				MainCaracter.endInteract();
 				//MainConsole.Clear();
 				//MainTerminal.clear();
 				break;
 			case 'w':
-				MainCaracter.movecusor(GO_UP);
+				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_UP);
+				else activeChest->movecusor(GO_UP);
 				break;
 			case 'a':
-				MainCaracter.movecusor(GO_LEFT);
+				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_LEFT);
+				else activeChest->movecusor(GO_LEFT);
 				break;
 			case 's':
-				MainCaracter.movecusor(GO_DOWN);
+				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_DOWN);
+				else activeChest->movecusor(GO_DOWN);
 				break;
 			case 'd':
-				MainCaracter.movecusor(GO_RIGHT);
+				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_RIGHT);
+				else activeChest->movecusor(GO_RIGHT);
 				break;
 			case 'e':	// put Item In hand / set item out of hand
-				if (MainCaracter.isItemInHandExistant()) { // put Item out of hand
-					if (MainCaracter.isInventoryItemExistant(MainCaracter.getInventoryCursor())) {
-						MainCaracter.setInventoryItem(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()), MainCaracter.getInventoryCursor());
-						MainCaracter.deleteItemInHand();
-					}
+				MainCaracter.MoveItem();
+				break;
+			case 'q':
+				if (MainCaracter.getIsCursorInInventory()) {
+					MainCaracter.setIsCursorInInventory(false);
+					activeChest->setIsCursorInChest(true);
 				}
-				else { // put Item in Hand
-					MainCaracter.setItemInHand(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()));
-					MainCaracter.removeInventoryItem(MainCaracter.getInventoryCursor());
+				else {
+					MainCaracter.setIsCursorInInventory(true);
+					activeChest->setIsCursorInChest(false);
 				}
+				
+				break;
+			case 'r': // pickup / drop Item
+				//if(GlobalWorld.EntetyMgr.getItem(MainCaracter.getX(), MainCaracter.getY()))
+				MainCaracter.dropItem(&GlobalWorld.EntetyMgr);
 				break;
 			default:
 				showMsgBox(0);
@@ -175,7 +259,7 @@ int main() {
 
 			if (MainCaracter.getIsChestOpen()) { 
 				MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
-				MainCaracter.PrintInventory(&MainConsole, 30, 17);
+				MainCaracter.PrintInventory(&MainConsole, 20, 17);
 			}
 		}
 
@@ -211,11 +295,8 @@ int main() {
 					MainCaracter.removeInventoryItem(MainCaracter.getInventoryCursor());
 				}
 				break;
-			case 'r':	// spawn test Item
-				testItem->SetItem(-1, L"k");
-				MainCaracter.setInventoryItem(testItem, 2);
-				testItem->SetItem(-1, L"P");
-				MainCaracter.setInventoryItem(testItem, 4);
+			case 'r': // pickup / drop Item
+				MainCaracter.dropItem(&GlobalWorld.EntetyMgr);
 				break;
 			default:
 				showMsgBox(0);
@@ -226,6 +307,48 @@ int main() {
 				MainCaracter.PrintInventory(&MainConsole, 0, 20);
 			}
 			delete testItem;
+		}
+
+		else if (MainCaracter.getIsDialogeActive()) {
+			switch (menu) {
+			case '1':
+				MainCaracter.getActiveNPC()->optionSelected(1);
+				break;
+			case '2':
+				MainCaracter.getActiveNPC()->optionSelected(2);
+				break;
+			case '3':
+				MainCaracter.getActiveNPC()->optionSelected(3);
+				break;
+			case '4':
+				MainCaracter.getActiveNPC()->optionSelected(4);
+				break;
+			case '5':
+				MainCaracter.getActiveNPC()->optionSelected(5);
+				break;
+			case '6':
+				MainCaracter.getActiveNPC()->optionSelected(6);
+				break;
+			case '7':
+				MainCaracter.getActiveNPC()->optionSelected(7);
+				break;
+			case '8':
+				MainCaracter.getActiveNPC()->optionSelected(8);
+				break;
+			case '9':
+				MainCaracter.getActiveNPC()->optionSelected(9);
+				break;
+			case 'f':
+				MainCaracter.endInteract();
+				break;
+			default:
+				showMsgBox(0);
+				break;
+			}
+
+			if (MainCaracter.getIsDialogeActive()) {
+				MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
+			}
 		}
 	}
 }

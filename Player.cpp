@@ -76,10 +76,16 @@ int Player::getY() {
 }
 
 int Player::serchInteractableObject(int x, int y, WorldClass* _World) {
+	// chest
 	if (_World->EntetyMgr.getEntety(x + 1, y) == 2) return 2;
 	if (_World->EntetyMgr.getEntety(x - 1, y) == 2) return 2;
 	if (_World->EntetyMgr.getEntety(x, y + 1) == 2) return 2;
 	if (_World->EntetyMgr.getEntety(x, y - 1) == 2) return 2;
+
+	if (_World->EntetyMgr.getEntety(x + 1, y) == 3) return 3;
+	if (_World->EntetyMgr.getEntety(x - 1, y) == 3) return 3;
+	if (_World->EntetyMgr.getEntety(x, y + 1) == 3) return 3;
+	if (_World->EntetyMgr.getEntety(x, y - 1) == 3) return 3;
 	return -2;
 }
 
@@ -91,6 +97,14 @@ WorldObjectChest* Player::getChest(int x, int y, WorldClass* _World) {
 	return NULL;
 }
 
+NPC* Player::getNPC(int x, int y, WorldClass* _World) {
+	if (_World->EntetyMgr.getEntety(x + 1, y) == 3) return static_cast<NPC*>(_World->EntetyMgr.getNPC(x + 1, y));
+	if (_World->EntetyMgr.getEntety(x - 1, y) == 3) return static_cast<NPC*>(_World->EntetyMgr.getNPC(x - 1, y));
+	if (_World->EntetyMgr.getEntety(x, y + 1) == 3) return static_cast<NPC*>(_World->EntetyMgr.getNPC(x, y + 1));
+	if (_World->EntetyMgr.getEntety(x, y - 1) == 3) return static_cast<NPC*>(_World->EntetyMgr.getNPC(x, y - 1));
+	return NULL;
+}
+
 bool Player::interact(WorldClass* World) {
 	if (getIsInventoryOpen()) return false;
 
@@ -99,11 +113,33 @@ bool Player::interact(WorldClass* World) {
 		isChestOpen = true;
 		return true;
 	}
+
+	if (serchInteractableObject(xPosition, yPosition, World) == 3) { // NPC found in radius
+		Player::ActiveNPC = Player::getNPC(xPosition, yPosition, World); // query for chest in radius
+		isDialogeActive = true;
+		return true;
+	}
 	return false;
 }
 
 void Player::endInteract() {
-	isChestOpen = false;
+	if (isChestOpen) {
+		isChestOpen = false;
+		if (isItemInHandExistant()) {
+			if (getIsCursorInInventory()) {
+				setInventoryItem(getItemInHand(), getPrevItemPos());
+				deleteItemInHand();
+				return;
+			}
+			getActiveChest()->putItem(getPrevItemPos(), *getItemInHand());
+			deleteItemInHand();
+			return;
+		}
+	}
+	if (isDialogeActive) {
+		ActiveNPC->setPage(0); // set defult page
+		isDialogeActive = false;
+	}
 }
 
 bool Player::getIsChestOpen() {
@@ -114,6 +150,95 @@ WorldObjectChest* Player::getActiveChest() {
 	return ActiveChest;
 }
 
+void Player::MoveItem() {
+	if (this->getIsCursorInInventory()) {
+		if (this->isItemInHandExistant()) { // put Item out of hand
+			if (!this->isInventoryItemExistant(this->getInventoryCursor())) {
+				this->setInventoryItem(this->getItemInHand(), this->getInventoryCursor());
+				this->deleteItemInHand();
+			}
+		}
+		else { // put Item in Hand
+			this->setItemInHand(this->getInventoryItem(this->getInventoryCursor()));
+			this->removeInventoryItem(this->getInventoryCursor());
+		}
+	}
+	else {
+		if (this->isItemInHandExistant()) { // put Item out of hand
+		
+			if (!ActiveChest->isItemExistant(ActiveChest->getInventoryCursor())) {
+				ActiveChest->putItem(ActiveChest->getInventoryCursor(), *this->getItemInHand());
+				this->deleteItemInHand();
+			}
+		}
+		else { // put Item in Hand
+			this->setItemInHand(ActiveChest->getItem(ActiveChest->getInventoryCursor()));
+			this->setPrevInvPos(ActiveChest->getInventoryCursor());
+			ActiveChest->removeItem(ActiveChest->getInventoryCursor());
+		}
+	}
+	return;
+}
+
+bool Player::getIsDialogeActive() {
+	return isDialogeActive;
+}
+
+NPC* Player::getActiveNPC() {
+	return ActiveNPC;
+}
+
+bool Player::pickupItem(WorldEntetymanager* EntetyMgr) {
+	if (EntetyMgr->getEntety(xPosition, yPosition) != 4) return false; // no item on floor
+	// check for first free slot
+	int freeInvSlot = -1;
+	for (size_t i = 0; i < 16; i++) {
+		if (!Player::isInventoryItemExistant(i)) {
+			freeInvSlot = i;
+			break;
+		}
+	}
+	// no free slot avalable
+	if (freeInvSlot == -1) return false;
+	// get ItemOnFloor and put in Inv
+	ItemOnFloor* tmpItemOnFloorPtr = static_cast<ItemOnFloor*>(EntetyMgr->getItem(Player::xPosition, Player::yPosition));
+	Player::setInventoryItem(tmpItemOnFloorPtr->getItem(), freeInvSlot);
+	
+
+	// delete Item on ground
+	delete static_cast<ItemOnFloor*>(EntetyMgr->getItem(Player::xPosition, Player::yPosition));
+
+	return true;
+}
+
+bool Player::dropItem(WorldEntetymanager* EntetyMgr) {
+	if (!(getIsInventoryOpen() || getIsChestOpen())) return false; // no inv or chest is open
+	if (EntetyMgr->getEntety(xPosition, yPosition) != -1) return false; // entety already ocupying space
+
+	// retrive Item from Container
+	ItemClass TmpItem;
+	if (getIsChestOpen()) { // for chests
+		if (getIsCursorInInventory()) {
+			TmpItem = *getInventoryItem(getInventoryCursor()); // from Inv
+			removeInventoryItem(getInventoryCursor());
+		}
+		else {
+			TmpItem = getActiveChest()->getItem(getActiveChest()->getInventoryCursor()); // from chest
+			getActiveChest()->removeItem(getActiveChest()->getInventoryCursor());
+		}
+	}
+	else if (getIsInventoryOpen()) { // for inventory
+			TmpItem = *getInventoryItem(getInventoryCursor());
+			removeInventoryItem(getInventoryCursor());
+	}
+
+	// set Item on floor
+	ItemOnFloor* NewItemOnFloor = static_cast<ItemOnFloor*>(malloc(sizeof ItemOnFloor));
+	NewItemOnFloor = new ItemOnFloor(xPosition, yPosition, TmpItem, EntetyMgr);
+	// don't delete floor Item until Item is picked up
+
+	
+}
 
 ///////////////////// Inventory \\\\\\\\\\\\\\\\\\\\
 
@@ -149,6 +274,10 @@ bool InventoryClass::getIsInventoryOpen() {
 
 void InventoryClass::closeInventory() {
 	isInventoryOpen = false;
+	if (isItemInHandExistant()) {
+		setInventoryItem(getItemInHand(), getPrevItemPos());
+		deleteItemInHand();
+	}
 }
 
 void InventoryClass::PrintInventory(Console* console, int x, int y) {
@@ -226,11 +355,22 @@ bool InventoryClass::setItemInHand(ItemClass* Item) {
 	voidItem->SetItem(0, L" ");
 	if (ItemInHand == *voidItem) {
 		delete voidItem;
+		if (getIsCursorInInventory()) {
+			prevItemPos = getInventoryCursor();
+		}
 		ItemInHand = *Item;
 		return true;
 	}
 	delete voidItem;
 	return false;
+}
+
+bool InventoryClass::setItemInHand(ItemClass Item) {
+	return setItemInHand(&Item);
+}
+
+void InventoryClass::setPrevInvPos(int val) {
+	prevItemPos = val;
 }
 
 bool InventoryClass::deleteItemInHand() {
@@ -279,3 +419,8 @@ void InventoryClass::setIsCursorInInventory(bool val) {
 	isCursorInInventory = val;
 	return;
 }
+
+int InventoryClass::getPrevItemPos() {
+	return prevItemPos;
+}
+

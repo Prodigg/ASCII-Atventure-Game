@@ -1,4 +1,8 @@
 #pragma once
+#ifndef __ENGINE__
+#define __ENGINE__
+
+
 #include <string>
 #include <Windows.h>
 
@@ -31,9 +35,16 @@ public:
 	char getKeyAction();
 	void clear();
 
+	void resizeWindow(int width, int hight);
+
 private:
 	int screenSizeX;
 	int screenSizeY;
 	Console* console;
 	HANDLE hConsole;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	CONSOLE_FONT_INFOEX cfi;
+	HWND HWNDconsole;
+	RECT r;
 };
+#endif // !__ENGINE__

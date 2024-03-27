@@ -1,4 +1,8 @@
 #pragma once
+#ifndef __PLAYER__
+#define __PLAYER__
+
+
 #include "World.h"
 #include "ContainerCursor.h"
 
@@ -30,12 +34,17 @@ public:
 	ItemClass* getEquipment(int Index);
 
 	bool setItemInHand(ItemClass* Item);
+	bool setItemInHand(ItemClass Item);
 	bool deleteItemInHand();
 	bool isItemInHandExistant();
 	ItemClass* getItemInHand();
 
 	bool getIsCursorInInventory();
 	void setIsCursorInInventory(bool val);
+	int getPrevItemPos();
+	void setPrevInvPos(int val);
+
+
 private:
 	ItemClass inventoryList[16];
 
@@ -50,8 +59,10 @@ private:
 	ItemClass ItemInHand;
 
 	bool isInventoryOpen = false;
-
+	int prevItemPos = 0;
 	bool isCursorInInventory = false;
+
+
 };
 
 
@@ -67,15 +78,30 @@ public:
 	bool getIsChestOpen();
 	WorldObjectChest* getActiveChest();
 	int serchInteractableObject(int x, int y, WorldClass* _World);
+	NPC* getActiveNPC();
 
+	bool pickupItem(WorldEntetymanager* EntetyMgr); // in and out of inventory
+	bool dropItem(WorldEntetymanager* EntetyMgr); // in inventory
+
+
+	void MoveItem();
+
+	bool getIsDialogeActive();
 private:
 	int xPosition = xSrartPosition;
 	int yPosition = ySrartPosition;
 
 
 	WorldObjectChest* getChest(int x, int y, WorldClass* _World);
+	NPC* getNPC(int x, int y, WorldClass* _World);
 
 	WorldObjectChest* ActiveChest;
 	bool isChestOpen = false;
 	
+	bool isDialogeActive = false;
+
+	NPC* ActiveNPC;
 };
+
+
+#endif // !__PLAYER__
