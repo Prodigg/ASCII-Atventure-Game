@@ -95,7 +95,7 @@ struct Option {
 	Option(const std::wstring& Text, int redirect)
 		: Text(Text), redirect(redirect), action(0), actionPrameter(0), actionPrameter2(0)
 	{}
-}
+};
 
 class DialogeBox {
 public:

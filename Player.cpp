@@ -90,10 +90,10 @@ int Player::serchInteractableObject(int x, int y, WorldClass* _World) {
 }
 
 WorldObjectChest* Player::getChest(int x, int y, WorldClass* _World) {
-	if (_World->EntetyMgr.getEntety(x + 1, y) == 2) return _World->EntetyMgr.getChest(x + 1, y);
-	if (_World->EntetyMgr.getEntety(x - 1, y) == 2) return _World->EntetyMgr.getChest(x - 1, y);
-	if (_World->EntetyMgr.getEntety(x, y + 1) == 2) return _World->EntetyMgr.getChest(x, y + 1);
-	if (_World->EntetyMgr.getEntety(x, y - 1) == 2) return _World->EntetyMgr.getChest(x, y - 1);
+	if (_World->EntetyMgr.getEntety(x + 1, y) == 2) return static_cast<WorldObjectChest*>(_World->EntetyMgr.getChest(x + 1, y));
+	if (_World->EntetyMgr.getEntety(x - 1, y) == 2) return static_cast<WorldObjectChest*>(_World->EntetyMgr.getChest(x - 1, y));
+	if (_World->EntetyMgr.getEntety(x, y + 1) == 2) return static_cast<WorldObjectChest*>(_World->EntetyMgr.getChest(x, y + 1));
+	if (_World->EntetyMgr.getEntety(x, y - 1) == 2) return static_cast<WorldObjectChest*>(_World->EntetyMgr.getChest(x, y - 1));
 	return NULL;
 }
 

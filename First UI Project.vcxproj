@@ -134,6 +134,7 @@
     <ClCompile Include="ItemClass.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Quest.cpp" />
     <ClCompile Include="TextBox.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -145,6 +146,7 @@
     <ClInclude Include="ItemClass.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Quest.h" />
     <ClInclude Include="TextBox.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

@@ -200,5 +200,5 @@ void DialogeBox::display(int x, int y, Console* console) {
 }
 
 Option* DialogeBox::getOptions(int page, int option) {
-	return &Options.at(page).at(option);
+	return &Options.at(page).at(option-1);
 }

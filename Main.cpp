@@ -131,15 +131,15 @@ void spezalTestFunction() {
 
 std::vector<std::vector<Option>> TestNPCOptions = {
 	{
-		{L"gut", 1, 0, 0},
-		{L"schlecht", 2, 0, 0}
+		{L"gut", 1},
+		{L"schlecht", 2}
 	}, 
 	{},
 	{}
 };
 
 //DialogeBox TextDialoge(TestMainText, TestOptions);
-std::vector<ItemClass> tmpInv;
+//std::vector<ItemClass> tmpInv;
 
 int main() {
 	char menu = ' ';
@@ -149,7 +149,21 @@ int main() {
 	TesttmpItem.SetItem(-1, L"O");
 	ItemOnFloor* TestItemOnFloor = new ItemOnFloor(16, 10, TesttmpItem, GlobalWorld.getEntetyMgr());
 	
-	NPC TestNPC(14, 10, 0, 30, TestNPCText, TestNPCOptions, GlobalWorld.getEntetyMgr(), tmpInv);
+	NPC TestNPC(14, 10, 0, 30, TestNPCText, TestNPCOptions, GlobalWorld.getEntetyMgr());
+
+	ItemClass tmpItem;
+
+	WorldObjectChest* TestChest1 = new WorldObjectChest(10, 10, GlobalWorld.getEntetyMgr());
+	tmpItem.SetItem(-1, L"#");
+	TestChest1->putItem(2, tmpItem);
+
+	WorldObjectChest* TestChest2 = new WorldObjectChest(12, 10, GlobalWorld.getEntetyMgr());
+	tmpItem.SetItem(-1, L"@");
+	TestChest2->putItem(2, tmpItem);
+
+	tmpItem.SetItem(-1, L"P");
+	TestChest2->putItem(4, tmpItem);
+
 
 	while (true) {
 		x = MainCaracter.getX();

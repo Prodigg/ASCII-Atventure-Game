@@ -34,13 +34,23 @@ bool WorldObject::isBlocking() {
 
 /////////// World Object Chest \\\\\\\\\\\\\\\\
 
-WorldObjectChest::WorldObjectChest(int x, int y) : WorldObject(2, x, y, true) {
+WorldObjectChest::WorldObjectChest(int x, int y, WorldEntetymanager* EntetyMgr) : WorldObject(2, x, y, true) {
 	ItemClass newItem;
+
 	newItem.SetItem(0, L" ");
 	for (size_t i = 0; i < 16; i++) {
 		WorldObjectChest::ItemList[i] = newItem;
 	}
+	EntetyID = EntetyMgr->registerEntety(x, y, ENTETY_CHEST, this);
 };
+
+WorldObjectChest::WorldObjectChest(int x, int y, WorldEntetymanager* EntetyMgr, ItemClass* _ItemList[16]) : WorldObject(2, x, y, true) {
+	for (size_t i = 0; i < 16; i++) {
+		WorldObjectChest::ItemList[i] = *_ItemList[i];
+	}
+	EntetyID = EntetyMgr->registerEntety(x, y, ENTETY_CHEST, this);
+};
+
 
 WorldObjectChest::WorldObjectChest() : WorldObject(2, 0, 0, true){
 	ItemClass newItem;
@@ -49,6 +59,10 @@ WorldObjectChest::WorldObjectChest() : WorldObject(2, 0, 0, true){
 		WorldObjectChest::ItemList[i] = newItem;
 	}
 };
+
+WorldObjectChest::~WorldObjectChest() {
+	EntetyMgr->unregisterEntety(EntetyID);
+}
 
 ItemClass WorldObjectChest::getItem(int Pos) {
 	return WorldObjectChest::ItemList[Pos];
@@ -125,31 +139,13 @@ void WorldObjectChest::removeItem(int Pos) {
 ///////////// WorldEntetymanager \\\\\\\\\\\\\\\\
 
 WorldEntetymanager::WorldEntetymanager() {
-	ItemClass tmpItem;
-	WorldObjectChest tmpChest(0, 0);
-
-	WorldEntetymanager::ChestArray[0] = tmpChest;
-	WorldEntetymanager::ChestArray[0].setPosition(10, 10);
-
-	tmpItem.SetItem(-1, L"#");
-	WorldEntetymanager::ChestArray[0].putItem(2, tmpItem);
-
-
-	WorldEntetymanager::ChestArray[1] = tmpChest;
-	WorldEntetymanager::ChestArray[1].setPosition(12, 10);
-
-	tmpItem.SetItem(-1, L"@");
-	WorldEntetymanager::ChestArray[1].putItem(2, tmpItem);
-
-	tmpItem.SetItem(-1, L"P");
-	WorldEntetymanager::ChestArray[1].putItem(4, tmpItem);
-	//delete &tmpItem;
 }
 
 WorldEntetymanager::~WorldEntetymanager() {
 }
 
 int WorldEntetymanager::getEntety(int x, int y) {
+	/*
 	int xObject = 0;
 	int yObject = 0;
 
@@ -175,6 +171,12 @@ int WorldEntetymanager::getEntety(int x, int y) {
 			ItemOnFloor* tmpItemOnFloorPointer = static_cast<ItemOnFloor*> (ItemOnFloorArray.at(i)._Item);
 			return tmpItemOnFloorPointer->getObjectID();
 		}
+	}*/
+
+	for (size_t i = 0; i < EntetyDataArray.size(); i++) {
+		if (EntetyDataArray.at(i).x == x && EntetyDataArray.at(i).y == y) {
+			return EntetyDataArray.at(i).Entety_Type;
+		}
 	}
 	
 	return -1;
@@ -182,6 +184,7 @@ int WorldEntetymanager::getEntety(int x, int y) {
 
 
 bool WorldEntetymanager::isEntetyBlocking(int x, int y) {
+	/*
 	int xObject = 0;
 	int yObject = 0;
 
@@ -208,12 +211,77 @@ bool WorldEntetymanager::isEntetyBlocking(int x, int y) {
 			ItemOnFloor* tmpItemOnFloorPointer = static_cast<ItemOnFloor*>(ItemOnFloorArray.at(i)._Item);
 			return tmpItemOnFloorPointer->isBlocking();
 		}
+	}*/
+
+	for (size_t i = 0; i < EntetyDataArray.size(); i++) {
+		if (EntetyDataArray.at(i).x == x && EntetyDataArray.at(i).y == y) {
+			if (EntetyDataArray.at(i).Entety_Type == ENTETY_NPC) {
+				if (static_cast<NPC*>(EntetyDataArray.at(i).EntetyPtr)->isBlocking()) return true;
+			}
+			else if (EntetyDataArray.at(i).Entety_Type == ENTETY_CHEST) {
+				if (static_cast<WorldObjectChest*>(EntetyDataArray.at(i).EntetyPtr)->isBlocking()) return true;
+			}
+			else if (EntetyDataArray.at(i).Entety_Type == ENTETY_ITEM_ON_FLOOR) {
+				if (static_cast<ItemOnFloor*>(EntetyDataArray.at(i).EntetyPtr)->isBlocking()) return true;
+			}
+		}
 	}
 
 	return false;
 }
 
-WorldObjectChest* WorldEntetymanager::getChest(int x, int y) {
+int WorldEntetymanager::registerEntety(int x, int y, int EntetyType, void* EntetyPtr) {
+	WorldEntetyData* TmpWorldEntetyData = new WorldEntetyData;
+	TmpWorldEntetyData->x = x;
+	TmpWorldEntetyData->y = y;
+	TmpWorldEntetyData->Entety_Type = EntetyType;
+	TmpWorldEntetyData->EntetyPtr = EntetyPtr;
+
+	// find free EntetyID
+	int TmpEntetyID = 0;
+	for (size_t i = 0; i < EntetyDataArray.size(); i++) {
+		if (EntetyDataArray.at(i).Entety_ID == TmpEntetyID) TmpEntetyID++;
+	}
+	TmpWorldEntetyData->Entety_ID = TmpEntetyID;
+	EntetyDataArray.push_back(*TmpWorldEntetyData);
+	delete TmpWorldEntetyData;
+
+	return TmpEntetyID;
+}
+
+void WorldEntetymanager::unregisterEntety(int EntetyID) {
+
+	// find entety
+	int entetyPos = -1;
+	for (size_t i = 0; i < EntetyDataArray.size(); i++) {
+		if (EntetyDataArray.at(i).Entety_ID == EntetyID) {
+			entetyPos = i;
+			break;
+		}
+	}
+
+	// check if entety was found
+	if (entetyPos == -1) return;
+
+	// delete entety from EntetyDataArray
+	std::vector<WorldEntetyData>::iterator* EntetyDataArrayIterator = new std::vector<WorldEntetyData>::iterator;
+	*EntetyDataArrayIterator = EntetyDataArray.begin() + entetyPos;
+	EntetyDataArray.erase(*EntetyDataArrayIterator);
+	delete EntetyDataArrayIterator;
+
+	return;
+}
+
+void* WorldEntetymanager::getEntetyPtr(int x, int y) {
+	for (size_t i = 0; i < EntetyDataArray.size(); i++) {
+		if (EntetyDataArray.at(i).x == x && EntetyDataArray.at(i).y == y) return EntetyDataArray.at(i).EntetyPtr;
+	}
+	throw -1;
+	return NULL;
+}
+
+void* WorldEntetymanager::getChest(int x, int y) {
+	/*
 	int xObject = 0;
 	int yObject = 0;
 	for (size_t i = 0; i < CHEST_WORLD_COUNT; i++) {
@@ -223,20 +291,24 @@ WorldObjectChest* WorldEntetymanager::getChest(int x, int y) {
 			return &WorldEntetymanager::ChestArray[i];
 		}
 	}
-	return NULL;
+	return NULL;*/
+	return getEntetyPtr(x, y);
 }
 
 int WorldEntetymanager::registerNPC(int x, int y, void* _NPC) {
+	/*
 	NPCArray.push_back(_NPC);
 	posData* tmpPosData = new posData;
 	tmpPosData->x = x;
 	tmpPosData->y = y;
 	NPCPos.push_back(*tmpPosData);
 	delete tmpPosData;
-	return NPCArray.size() - 1;
+	return NPCArray.size() - 1;*/
+	return registerEntety(x, y, ENTETY_NPC, _NPC);
 }
 
 void WorldEntetymanager::unregisterNPC(int NPC_ID) {
+	/*
 	std::vector<void*>::iterator* NPCArrayIterator = new std::vector<void*>::iterator;
 	*NPCArrayIterator = NPCArray.begin() + NPC_ID;
 	NPCArray.erase(*NPCArrayIterator);
@@ -245,19 +317,30 @@ void WorldEntetymanager::unregisterNPC(int NPC_ID) {
 	std::vector<posData>::iterator* NPCPosArrayIterator = new std::vector<posData>::iterator;
 	*NPCPosArrayIterator = NPCPos.begin() + NPC_ID;
 	NPCPos.erase(*NPCPosArrayIterator);
-	delete NPCPosArrayIterator;
+	delete NPCPosArrayIterator;*/
+	return unregisterEntety(NPC_ID);
 }
 
 void* WorldEntetymanager::getNPC(int x, int y) {
+	/*
 	for (size_t i = 0; i < NPCPos.size(); i++) {
 		if (NPCPos.at(i).x == x && NPCPos.at(i).y == y) {
 			return NPCArray.at(i);
 		}
 	}
-	return NULL;
+	return NULL;*/
+	try {
+		return getEntetyPtr(x, y);
+	}
+	catch (int error) {
+		throw error;
+		return NULL;
+	}
+	
 }
 
 int WorldEntetymanager::registerItem(int x, int y, void* _Item) {
+	/*
 	ItemOnGroundData* ItemOnGroundtmpData = new ItemOnGroundData;
 	ItemOnGroundtmpData->x = x;
 	ItemOnGroundtmpData->y = y;
@@ -271,10 +354,13 @@ int WorldEntetymanager::registerItem(int x, int y, void* _Item) {
 	ItemOnFloorArray.push_back(*ItemOnGroundtmpData);
 	delete ItemOnGroundtmpData;
 
-	return tmpItemID;
+	return tmpItemID;*/
+	return registerEntety(x, y, ENTETY_ITEM_ON_FLOOR, _Item);
+
 }
 
 void WorldEntetymanager::unregisterItem(int ITEM_ID) {
+	/*
 	int ItemInArray = -1;
 	std::vector<ItemOnGroundData>::iterator* ItemArrayIterator = new std::vector<ItemOnGroundData>::iterator;
 	for (size_t i = 0; i < ItemOnFloorArray.size(); i++) {
@@ -288,14 +374,23 @@ void WorldEntetymanager::unregisterItem(int ITEM_ID) {
 	*ItemArrayIterator = ItemOnFloorArray.begin() + ItemInArray;
 	ItemOnFloorArray.erase(*ItemArrayIterator);
 	delete ItemArrayIterator;
-	return;
+	return;*/
+	return unregisterEntety(ITEM_ID);
 }
 
 void* WorldEntetymanager::getItem(int x, int y) {
+	/*
 	for (size_t i = 0; i < ItemOnFloorArray.size(); i++) {
 		if(ItemOnFloorArray.at(i).x == x && ItemOnFloorArray.at(i).y == y) {
 			return ItemOnFloorArray.at(i)._Item;
 		}
+	}*/
+	try {
+		return getEntetyPtr(x, y);
+	}
+	catch (int error) {
+		throw error;
+		return NULL;
 	}
 }
 
@@ -315,8 +410,18 @@ enum NPCDialogActionsParameters {
 	ITEM_INVENTORY_ID = 1
 };
 
+NPC::NPC(int x, int y, int displayX, int displayY, std::vector<std::vector<std::wstring>> MainText, std::vector<std::vector<Option>> Options, WorldEntetymanager* WorldMgr) : 
+	WorldObject(3, x, y, true),
+	DialogeBox(MainText, Options),
+	displayX(displayX),
+	displayY(displayY),
+	WordlMgr(WorldMgr) {
+	
+	// register NPC in World Manager
+	NPC_ID = WorldMgr->registerNPC(x, y, this);
+}
 
-NPC::NPC(int x, int y, int displayX, int displayY, std::vector<std::vector<std::wstring>> MainText, std::vector<std::vector<Option>> Options, WorldEntetymanager* WorldMgr, std::vector<ItemClass> Inventory) : 
+NPC::NPC(int x, int y, int displayX, int displayY, std::vector<std::vector<std::wstring>> MainText, std::vector<std::vector<Option>> Options, WorldEntetymanager* WorldMgr, std::vector<NPCItemSaveData> Inventory) :
 WorldObject(3, x, y, true), 
 DialogeBox(MainText, Options),
 displayX(displayX),
@@ -364,6 +469,9 @@ void NPC::optionSelected(int option) {
 		NewItemOnFloor = new ItemOnFloor(x, y, Inventory.at(ItemPos).Item, WordlMgr);
 
 		// delete Item form NPC Inv
+	}
+	else if (action == 0) { // redirect page
+		DialogeBox::optionSelected(option);
 	}
 }
 

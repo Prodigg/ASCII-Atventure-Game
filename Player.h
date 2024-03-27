@@ -83,7 +83,6 @@ public:
 	bool pickupItem(WorldEntetymanager* EntetyMgr); // in and out of inventory
 	bool dropItem(WorldEntetymanager* EntetyMgr); // in inventory
 
-
 	void MoveItem();
 
 	bool getIsDialogeActive();
