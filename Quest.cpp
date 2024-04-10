@@ -2,16 +2,18 @@
 //TODO: Quest system Testen und vertigstellen
 
 
-Quest::Quest(std::vector<QuestObjective> QuestObjectivs) : 
-QuestObjectivs(QuestObjectivs){
+Quest::Quest(std::vector<QuestObjective> QuestObjectivs, QuestManager* QuestMgr) :
+QuestObjectivs(QuestObjectivs), 
+QuestMgr(QuestMgr) {
 	int* tmpArray = new int[QuestObjectivs.size() + 2];
 	tmpArray[0] = TEXT_HEAD;
 	for (size_t i = 0; i < QuestObjectivs.size(); i++) {
 		tmpArray[i + 1] = TEXT_BODY;
 	}
-	tmpArray[QuestObjectivs.size() + 2] = TEXT_END;
+	tmpArray[QuestObjectivs.size() + 1] = TEXT_END;
 	QuestDisplayTextBox->reformate(tmpArray, QuestObjectivs.size() + 2);
 	delete[] tmpArray;
+	QuestID = QuestMgr->registerQuest(this);
 }
 
 void Quest::drawQuest(int x, int y, Console* console) {
@@ -74,4 +76,88 @@ bool Quest::getQuestObjectiveStatus(int QuestObjectiveID) {
 	if (QuestObjectivePos == -1) return false;
 
 	return QuestObjectivs.at(QuestObjectivePos).completed;
+}
+
+int Quest::getQuestID() {
+	return Quest::QuestID;
+}
+
+void Quest::setQuestID(int QuestID) {
+	Quest::QuestID = QuestID;
+}
+
+void Quest::update() {
+	for (size_t i = 0; i < QuestObjectivs.size(); i++) {
+		
+			switch (QuestObjectivs.at(i).QuestObjectiveType) {
+			case QUEST_OBJECTIVE_ITEM_TO_NPC: // NPC must have certan Item
+				if (static_cast<NPC*>(QuestObjectivs.at(i).QuestObjectivePtr)->checkForItem(QuestObjectivs.at(i).additionalInformation)) {
+					QuestObjectivs.at(i).completed = true;
+				}
+				break;
+			case QUEST_OBJECTIVE_TALKE_NPC:
+				if (static_cast<NPC*>(QuestObjectivs.at(i).QuestObjectivePtr)->getNPCState() == NPC_DIALOGE) {
+					QuestObjectivs.at(i).completed = true;
+				}
+				break;
+			default:
+				break;
+			}
+	}
+}
+
+/////////////////// QuestManager \\\\\\\\\\\\\\\\
+
+QuestManager::QuestManager() {
+}
+
+QuestManager ::~QuestManager() {
+}
+
+
+void QuestManager::QuestUpdate() {
+	for (size_t i = 0; i < QuestObjectiveList.size(); i++) {
+		static_cast<Quest*>(QuestObjectiveList.at(i))->update();
+	}
+}
+
+int QuestManager::registerQuest(void* QuestPtr) {
+	// search for free QuestID
+	int TmpQuestID = 0;
+	for (size_t i = 0; i < QuestObjectiveList.size(); i++) {
+		if (static_cast<Quest*>(QuestObjectiveList.at(i))->getQuestID() == TmpQuestID) TmpQuestID++;
+	}
+	// set QuestID
+	static_cast<Quest*>(QuestPtr)->setQuestID(TmpQuestID);
+
+	// add Quest to Array
+	QuestObjectiveList.push_back(QuestPtr);
+	return TmpQuestID;
+}
+
+void QuestManager::unregisterQuest(int QuestID) {
+	// find Quest
+	int QuestPos = -1;
+	for (size_t i = 0; i < QuestObjectiveList.size(); i++) {
+		if (static_cast<Quest*>(QuestObjectiveList.at(i))->getQuestID() == QuestID) {
+			QuestPos = i;
+			break;
+		}
+	}
+
+	// check if Quest was found
+	if (QuestPos == -1) return;
+
+	// delete Quest from QuestObjectiveArray
+	std::vector<void*>::iterator* QuestArrayIterator = new std::vector<void*>::iterator;
+	*QuestArrayIterator = QuestObjectiveList.begin() + QuestPos;
+	QuestObjectiveList.erase(*QuestArrayIterator);
+	delete QuestArrayIterator;
+
+	return;
+}
+
+
+void QuestManager::showFirstQuest(int x, int y, Console* console) {
+	return static_cast<Quest*>(QuestObjectiveList.at(0))->drawQuest(x, y, console);
 }

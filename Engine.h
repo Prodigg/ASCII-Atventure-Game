@@ -2,9 +2,11 @@
 #ifndef __ENGINE__
 #define __ENGINE__
 
+#define NOMINMAX 
 
 #include <string>
 #include <Windows.h>
+#include <SFML/Graphics.hpp>
 
 #define PRINT_ARRAY_X 50
 #define PRINT_ARRAY_Y 80
@@ -34,6 +36,7 @@ public:
 	~Terminal ();
 	char getKeyAction();
 	void clear();
+	bool isKeyPressed();
 
 	void resizeWindow(int width, int hight);
 
@@ -47,4 +50,35 @@ private:
 	HWND HWNDconsole;
 	RECT r;
 };
+
+struct KeyEventData {
+	char key;
+	bool alt;
+	bool control;
+	bool shift;
+};
+
+class Window {
+public:
+	Window(int sizeX, int sizeY, Console* console, int screensizeX, int screensizeY);
+	~Window();
+	KeyEventData* getKeyAction();
+	bool handleEvents();
+	void clearscreen();
+	
+	void render();
+private:
+	int screensizeX;
+	int screensizeY;
+
+	sf::RenderWindow window_{sf::VideoMode(200, 300), "tmp"};
+	Console* console;
+	sf::View view;
+	sf::Font font;
+	sf::Event event_;
+	KeyEventData keyData;
+	std::wstring ScreenBuffer;
+};
+
+
 #endif // !__ENGINE__

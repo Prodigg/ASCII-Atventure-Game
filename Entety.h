@@ -123,7 +123,11 @@ public:
 	NPC(int x, int y, int displayX, int displayY, std::vector<std::vector<std::wstring>> MainText, std::vector<std::vector<Option>> Options, WorldEntetymanager* WorldMgr);
 
 	~NPC();
-	void optionSelected(int option);
+	void optionSelected(int option, void* player);
+	bool checkForItem(int ItemID);
+	int getNPCState();
+	void setNPCState(int val);
+
 private:
 	int lastMove = 0;
 	int npcState = 0;
@@ -135,7 +139,30 @@ private:
 	AliveEntetyStats stats;
 	WorldEntetymanager* WordlMgr;
 	std::vector<NPCItemSaveData> Inventory;
+};  
+
+class HostileNPC : public WorldObject {
+public:
+	HostileNPC(int x, int y, WorldEntetymanager* EntetyMgr, int HP, int Damage, int Armor, int chanceToHit);
+	~HostileNPC();
+	AliveEntetyStats* getStats();
+	bool attached(int damage);
+	void damage(int damage);
+
+	/*
+	* is the Update function for this NPC
+	* Checks if it is dead and moves NPC
+	*/
+	void update();
+private:
+	AliveEntetyStats stats;
+	int ChanceToHit;
+
+	int EntetyID;
+	WorldEntetymanager* EntetyMgr;
 };
+
+
 
 class ItemOnFloor : public WorldObject {
 public:

@@ -19,7 +19,8 @@ std::wstring InventoryPickup[3]{
 	L"└───┘"
 };
 
-Player::Player() {
+Player::Player() : 
+InventoryClass(true) {
 }
 
 bool Player::moveTo(int x, int y, WorldClass* _World) {
@@ -117,6 +118,7 @@ bool Player::interact(WorldClass* World) {
 	if (serchInteractableObject(xPosition, yPosition, World) == 3) { // NPC found in radius
 		Player::ActiveNPC = Player::getNPC(xPosition, yPosition, World); // query for chest in radius
 		isDialogeActive = true;
+		ActiveNPC->setNPCState(NPC_DIALOGE);
 		return true;
 	}
 	return false;
@@ -138,6 +140,7 @@ void Player::endInteract() {
 	}
 	if (isDialogeActive) {
 		ActiveNPC->setPage(0); // set defult page
+		ActiveNPC->setNPCState(NPC_IDLE);
 		isDialogeActive = false;
 	}
 }
@@ -237,11 +240,103 @@ bool Player::dropItem(WorldEntetymanager* EntetyMgr) {
 	NewItemOnFloor = new ItemOnFloor(xPosition, yPosition, TmpItem, EntetyMgr);
 	// don't delete floor Item until Item is picked up
 
+	return true;
+}
+
+void Player::equipItem(int InventoryIndex) {
+	// get Item
+	ItemClass* Item = getInventoryItem(InventoryIndex);
+
+	// validate if Item can be Equipt
+	if (Item->getItemType() == 0) return;
+
+	// calculate EquipSlot
+	int TmpEquipSlot = Item->getItemType() - 1;
+
+	// check if slot is Empty
+	ItemClass* voidItem = new ItemClass(0, 0, L" ", 0, 0, 0);
+	if (getEquipment(TmpEquipSlot) == voidItem) { 
+		// slot not Empty
+		delete voidItem;
+		return;
+	}
+	delete voidItem;
+
+	// set Item to EquipSlot
+	setEquipment(Item, TmpEquipSlot);
+	
+	// delete InventoryItem
+	removeInventoryItem(InventoryIndex);
+
+	return;
 	
 }
 
+void Player::unequipItem(int EquipSlot) {
+	// check if cursorPos is free
+	if (isInventoryItemExistant(getInventoryCursor()) == true) return;
+
+	// copy Equip Item to Inventory
+	setInventoryItem(getEquipment(EquipSlot), getInventoryCursor());
+
+	// create voidItem and remove EquipItem
+	ItemClass* voidItem = new ItemClass(0, 0, L" ", 0, 0, 0);
+	setEquipment(voidItem, EquipSlot);
+	delete voidItem;
+
+	return;
+}
+
+void Player::attack(WorldClass* World) {
+	// find Entety to attack
+	int AttackEntetyX = -1;
+	int AttackEntetyY = -1;
+	if (World->EntetyMgr.getEntety(getX() + 1, getY()) == 5) { // NPC Hostile
+		AttackEntetyX = getX() + 1;
+		AttackEntetyY = getY();
+	}
+	if (World->EntetyMgr.getEntety(getX() - 1, getY()) == 5) { // NPC Hostile
+		AttackEntetyX = getX() - 1;
+		AttackEntetyY = getY();
+	}
+	if (World->EntetyMgr.getEntety(getX(), getY() + 1) == 5) { // NPC Hostile
+		AttackEntetyX = getX();
+		AttackEntetyY = getY() + 1;
+	}
+	if (World->EntetyMgr.getEntety(getX(), getY() - 1) == 5) { // NPC Hostile
+		AttackEntetyX = getX();
+		AttackEntetyY = getY() - 1;
+	}
+	
+	// check if entety was found
+	if (AttackEntetyX == -1 || AttackEntetyY == -1) return;
+
+	// getFoundEntety
+	HostileNPC* AttackEntety = static_cast<HostileNPC*>(World->EntetyMgr.getEntetyPtr(AttackEntetyX, AttackEntetyY));
+	AttackEntety->damage(Damage);
+
+	return;
+}
+
+
+
 ///////////////////// Inventory \\\\\\\\\\\\\\\\\\\\
 
+InventoryClass::InventoryClass(bool isMainCaracter) : isMainCaracterInventory(isMainCaracter) {
+	ItemClass* tmpItem = new ItemClass();
+	tmpItem->SetItem(0, L" ");
+	for (size_t i = 0; i < 16; i++) { // init Inventory
+		inventoryList[i] = *tmpItem;
+	}
+
+	for (size_t i = 0; i < 4; i++) { // init Eqipment
+		EquipList[i] = *tmpItem;
+	}
+
+	ItemInHand = *tmpItem;
+
+	delete tmpItem;
+}
 
 InventoryClass::InventoryClass() {
 	ItemClass* tmpItem = new ItemClass();

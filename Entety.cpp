@@ -1,5 +1,6 @@
 ﻿#include "Entety.h"
 #include "ItemClass.h"
+#include "Player.h"
 
 #include <string>
 #include <iostream>
@@ -437,10 +438,23 @@ NPC::~NPC() {
 	NPC::WordlMgr->unregisterNPC(NPC_ID);
 }
 
+/*
+* action: DropItem
+*		ActionParameter: NPCItemID
+*		ActionParameter2: direction of dropping Item
+* action: getItemFromInventory
+*		ActionParameter: ItemID to pickUp
+*		ActionParameter2: NewNPCItemID
+*/
 
-void NPC::optionSelected(int option) {
+void NPC::optionSelected(int option, void* player) {
+	Player* player_ = static_cast<Player*>(player);
+	// check if option is valid
+	if (isOptionAvalable(option) == false) return;
+
 	int action = getOptions(getPage(), option)->action;
 	int actionArgument = getOptions(getPage(), option)->actionPrameter;
+	int actionArgument2 = getOptions(getPage(), option)->actionPrameter2;
 	if (action == 1) { // drop Item on floor
 		int ItemPos = -1;
 
@@ -457,7 +471,6 @@ void NPC::optionSelected(int option) {
 		// get Direction from actionParameter2
 		int x = getxPosition();
 		int y = getyPosition();
-		int actionArgument2 = getOptions(getPage(), option)->actionPrameter2;
 		if (actionArgument2 == 0) y = y - 1;
 		else if (actionArgument2 == 1) y = y + 1;
 		else if (actionArgument2 == 2) x = x + 1;
@@ -467,12 +480,43 @@ void NPC::optionSelected(int option) {
 		// drop Item
 		ItemOnFloor* NewItemOnFloor = static_cast<ItemOnFloor*>(malloc(sizeof ItemOnFloor));
 		NewItemOnFloor = new ItemOnFloor(x, y, Inventory.at(ItemPos).Item, WordlMgr);
-
-		// delete Item form NPC Inv
 	}
 	else if (action == 0) { // redirect page
 		DialogeBox::optionSelected(option);
 	}
+	else if (action == 2) { // getItemFromInventory
+		// seartch for Item
+		int ItemPos = -1;
+		for (size_t i = 0; i < 16; i++) {
+			if (player_->getInventoryItem(i)->getItemID() == actionArgument) {
+				ItemPos = i;
+				break;
+			}
+		}
+		// check if Item was Found
+		if (ItemPos == -1) return;
+
+		NPCItemSaveData* tmpNPCItem = new NPCItemSaveData(*player_->getInventoryItem(ItemPos), actionArgument2);
+		player_->removeInventoryItem(ItemPos);
+
+		NPC::Inventory.push_back(*tmpNPCItem);
+		delete tmpNPCItem;
+	}
+}
+
+int NPC::getNPCState() {
+	return npcState;
+}
+
+void NPC::setNPCState(int val) {
+	npcState = val;
+}
+
+bool NPC::checkForItem(int ItemID) {
+	for (size_t i = 0; i < Inventory.size(); i++) {
+		if (Inventory.at(i).Item.getItemID() == ItemID) return true;
+	}
+	return false;
 }
 
 ////////////// ItemOnFloor \\\\\\\\\\\\\\\\
@@ -490,4 +534,53 @@ ItemOnFloor::~ItemOnFloor() {
 
 ItemClass* ItemOnFloor::getItem() {
 	return &Item;
+}
+
+///////////// Hostile NPC \\\\\\\\\\\\\\\\\\\
+
+
+HostileNPC::HostileNPC(int x, int y, WorldEntetymanager* EntetyMgr, int HP, int Damage, int Armor, int chanceToHit) :
+	WorldObject(5, x, y, true), 
+	EntetyMgr(EntetyMgr) {
+	EntetyID = EntetyMgr->registerEntety(x, y, 5, this);
+	stats.health = HP;
+	stats.armor = Armor;
+	stats.damage = Damage;
+	ChanceToHit = chanceToHit;
+}
+
+HostileNPC ::~HostileNPC() {
+	EntetyMgr->unregisterEntety(EntetyID);
+}
+
+AliveEntetyStats* HostileNPC::getStats() {
+	return &stats;
+}
+
+bool HostileNPC::attached(int damage) {
+	// generate random number
+	int HitNum = (rand() % ChanceToHit) + 1;
+
+	// check if it missed
+	if (HitNum != 1) return false;
+
+	// calculate damage
+	int CalculatedDamage = damage - stats.armor;
+
+	// damage NPC
+	HostileNPC::damage(CalculatedDamage);
+	return true;
+}
+
+void HostileNPC::damage(int damage){
+	stats.health = stats.health - damage;
+}
+
+void HostileNPC::update() {
+	// check if it is dead
+	if (stats.health <= 0) { // NPC dead
+		delete this; // selfdestruct
+	}
+
+	// TODO: add moving
 }

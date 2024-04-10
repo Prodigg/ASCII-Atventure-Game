@@ -102,10 +102,10 @@ public:
 	DialogeBox(std::vector<std::vector<std::wstring>> MainText, std::vector<std::vector<Option>> Options);
 	void display(int x, int y, Console* console);
 	void setPage(int pageNum);
-	void tmpDisableOption(int option);
+	void DisableOption(int option);
 	void enableOption(int option);
 	int getPage() { return currentPage; }
-
+	bool isOptionAvalable(int option);
 
 protected:
 	bool optionSelected(int option);

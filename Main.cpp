@@ -1,4 +1,6 @@
-﻿#include <iostream>
+﻿#define NOMINMAX 
+
+#include <iostream>
 #include <string>
 #include <fcntl.h>
 #include <io.h>
@@ -13,6 +15,7 @@
 #include "Entety.h"
 //#include "Engine.h"
 #include "TextBox.h"
+#include "Quest.h"
 
 /* Windows CMD Colors
 *		Zuertst backround, dann text color Bsp: text: red, backround yellow 0x6C
@@ -125,14 +128,18 @@ std::vector<std::vector<std::wstring>> TestNPCText = {
 	}
 };
 
-void spezalTestFunction() {
-	std::cout << "Test";
-}
+ItemClass testNPCInvItem(0, 100, L"*", 0, 0, 0);
+
+std::vector<NPCItemSaveData>TestNPCInventory = {
+	{testNPCInvItem, 100}
+};
 
 std::vector<std::vector<Option>> TestNPCOptions = {
 	{
 		{L"gut", 1},
-		{L"schlecht", 2}
+		{L"schlecht", 2},
+		{L"Item geben", 0, 2, 101, 101},
+		{L"NPC gibt Item", 0, 1, 100}
 	}, 
 	{},
 	{}
@@ -140,16 +147,31 @@ std::vector<std::vector<Option>> TestNPCOptions = {
 
 //DialogeBox TextDialoge(TestMainText, TestOptions);
 //std::vector<ItemClass> tmpInv;
+QuestManager GlobalQuestMgr;
+
+NPC TestNPC(14, 10, 0, 30, TestNPCText, TestNPCOptions, GlobalWorld.getEntetyMgr(), TestNPCInventory);
+NPC TestNPC2(14, 12, 0, 30, TestNPCText, TestNPCOptions, GlobalWorld.getEntetyMgr(), TestNPCInventory);
+
+std::vector<QuestObjective> TestQuestObjectivs = {
+	{false, L"Test Quest 1", QUEST_OBJECTIVE_TALKE_NPC, &TestNPC, NULL},
+	{false, L"Test Quest 2", QUEST_OBJECTIVE_ITEM_TO_NPC, &TestNPC2, 101}
+};
+
+ItemClass* TestWapon = new ItemClass(1, -1, L"W", 10, 0, 0);
+
+ItemOnFloor* TestWaponOnFloor = new ItemOnFloor(16, 12, *TestWapon, GlobalWorld.getEntetyMgr());
+
 
 int main() {
 	char menu = ' ';
 	int x;
 	int y;
+
+	Window TestWindow(300, 500, &MainConsole, PRINT_ARRAY_X, PRINT_ARRAY_Y);
+
 	ItemClass TesttmpItem;
-	TesttmpItem.SetItem(-1, L"O");
+	TesttmpItem.SetItem(101, L"O");
 	ItemOnFloor* TestItemOnFloor = new ItemOnFloor(16, 10, TesttmpItem, GlobalWorld.getEntetyMgr());
-	
-	NPC TestNPC(14, 10, 0, 30, TestNPCText, TestNPCOptions, GlobalWorld.getEntetyMgr());
 
 	ItemClass tmpItem;
 
@@ -164,204 +186,234 @@ int main() {
 	tmpItem.SetItem(-1, L"P");
 	TestChest2->putItem(4, tmpItem);
 
+	Quest* TestQuest = new Quest(TestQuestObjectivs, &GlobalQuestMgr);
+
+
 
 	while (true) {
-		x = MainCaracter.getX();
-		y = MainCaracter.getY();
 
-		//TextDialoge.display(0, 30, &MainConsole);
+		if (MainTerminal.isKeyPressed()) {
+			x = MainCaracter.getX();
+			y = MainCaracter.getY();
 
-		GlobalWorld.drawWorld(x, y, 0, 0);
-		drawMenu(x, y);
-		MainTerminal.print();
+			//TextDialoge.display(0, 30, &MainConsole);
+			GlobalQuestMgr.QuestUpdate();
+			GlobalQuestMgr.showFirstQuest(20, 0, &MainConsole);
+			GlobalWorld.drawWorld(x, y, 0, 0);
+			drawMenu(x, y);
+			MainTerminal.print();
 
-		menu = MainTerminal.getKeyAction();
-		MainConsole.Clear();
-		MainConsole.ClearColor();
-		MainTerminal.clear();
+			TestWindow.render();
 
-		if (!MainCaracter.getIsChestOpen() && !MainCaracter.getIsInventoryOpen() && !MainCaracter.getIsDialogeActive()) {
-			switch (menu) {
-			case 'd': // move right
-				MainCaracter.go(GO_RIGHT, &GlobalWorld);
-				break;
-			case 'a': // move left
-				MainCaracter.go(GO_LEFT, &GlobalWorld);
-				break;
-			case 's': // move down
-				MainCaracter.go(GO_DOWN, &GlobalWorld);
-				break;
-			case 'w': // move up
-				MainCaracter.go(GO_UP, &GlobalWorld);
-				break;
-			case 'f': // interact
-				if (MainCaracter.interact(&GlobalWorld)) {
-					if (MainCaracter.getIsChestOpen()) { // chest
-						MainCaracter.setIsCursorInInventory(false);
-						MainCaracter.getActiveChest()->setIsCursorInChest(true);
-						MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
-						MainCaracter.PrintInventory(&MainConsole, 20, 17);
+			while(!TestWindow.handleEvents()) { }
+			//menu = MainTerminal.getKeyAction();
+			menu = TestWindow.getKeyAction()->key;
+
+			TestWindow.clearscreen();
+			MainConsole.Clear();
+
+			MainConsole.ClearColor();
+			MainTerminal.clear();
+
+			if (!MainCaracter.getIsChestOpen() && !MainCaracter.getIsInventoryOpen() && !MainCaracter.getIsDialogeActive()) {
+				switch (menu) {
+				case 'd': // move right
+					MainCaracter.go(GO_RIGHT, &GlobalWorld);
+					break;
+				case 'a': // move left
+					MainCaracter.go(GO_LEFT, &GlobalWorld);
+					break;
+				case 's': // move down
+					MainCaracter.go(GO_DOWN, &GlobalWorld);
+					break;
+				case 'w': // move up
+					MainCaracter.go(GO_UP, &GlobalWorld);
+					break;
+				case 'f': // interact
+					if (MainCaracter.interact(&GlobalWorld)) {
+						if (MainCaracter.getIsChestOpen()) { // chest
+							MainCaracter.setIsCursorInInventory(false);
+							MainCaracter.getActiveChest()->setIsCursorInChest(true);
+							MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
+							MainCaracter.PrintInventory(&MainConsole, 20, 17);
+						}
+						else if (MainCaracter.getIsDialogeActive()) { // NPC
+							MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
+						}
 					}
-					else if (MainCaracter.getIsDialogeActive()) { // NPC
-						MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
+					else showMsgBox(0);
+					break;
+				case 'i': // invantory
+					if (MainCaracter.openInventory()) {
+						MainCaracter.PrintInventory(&MainConsole, 0, 20);
+						MainCaracter.setIsCursorInInventory(true);
 					}
-				} else showMsgBox(0);
-				break;
-			case 'i': // invantory
-				if (MainCaracter.openInventory()) {
-					MainCaracter.PrintInventory(&MainConsole, 0, 20);
-					MainCaracter.setIsCursorInInventory(true);
+					break;
+				case 'r': // pickup Item
+					MainCaracter.pickupItem(&GlobalWorld.EntetyMgr);
+					break;
+				default:
+					showMsgBox(0);
+					break;
 				}
-				break;
-			case 'r': // pickup Item
-				MainCaracter.pickupItem(&GlobalWorld.EntetyMgr);
-				break;
-			default:
-				showMsgBox(0);
-				break;
 			}
-		} 
-		
-		else if (MainCaracter.getIsChestOpen()) {
-			activeChest = MainCaracter.getActiveChest();
-			switch (menu) {
-			case 'f':
-				MainCaracter.setIsCursorInInventory(false);
-				activeChest->setIsCursorInChest(true);
-				MainCaracter.endInteract();
-				//MainConsole.Clear();
-				//MainTerminal.clear();
-				break;
-			case 'w':
-				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_UP);
-				else activeChest->movecusor(GO_UP);
-				break;
-			case 'a':
-				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_LEFT);
-				else activeChest->movecusor(GO_LEFT);
-				break;
-			case 's':
-				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_DOWN);
-				else activeChest->movecusor(GO_DOWN);
-				break;
-			case 'd':
-				if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_RIGHT);
-				else activeChest->movecusor(GO_RIGHT);
-				break;
-			case 'e':	// put Item In hand / set item out of hand
-				MainCaracter.MoveItem();
-				break;
-			case 'q':
-				if (MainCaracter.getIsCursorInInventory()) {
+
+			else if (MainCaracter.getIsChestOpen()) {
+				activeChest = MainCaracter.getActiveChest();
+				switch (menu) {
+				case 'f':
 					MainCaracter.setIsCursorInInventory(false);
 					activeChest->setIsCursorInChest(true);
-				}
-				else {
-					MainCaracter.setIsCursorInInventory(true);
-					activeChest->setIsCursorInChest(false);
-				}
-				
-				break;
-			case 'r': // pickup / drop Item
-				//if(GlobalWorld.EntetyMgr.getItem(MainCaracter.getX(), MainCaracter.getY()))
-				MainCaracter.dropItem(&GlobalWorld.EntetyMgr);
-				break;
-			default:
-				showMsgBox(0);
-				break;
-			}
-
-			if (MainCaracter.getIsChestOpen()) { 
-				MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
-				MainCaracter.PrintInventory(&MainConsole, 20, 17);
-			}
-		}
-
-
-		else if (MainCaracter.getIsInventoryOpen()) {
-			ItemClass* testItem = new ItemClass;
-			switch (menu) {
-			case 'i':
-				MainCaracter.closeInventory();
-				MainCaracter.setIsCursorInInventory(false);
-				break;
-			case 'w':
-				MainCaracter.movecusor(GO_UP);
-				break;
-			case 'a':
-				MainCaracter.movecusor(GO_LEFT);
-				break;
-			case 's':
-				MainCaracter.movecusor(GO_DOWN);
-				break;
-			case 'd':
-				MainCaracter.movecusor(GO_RIGHT);
-				break;
-			case 'e':	// put Item In hand / set item out of hand
-				if (MainCaracter.isItemInHandExistant()) { // put Item out of hand
-					if (!MainCaracter.isInventoryItemExistant(MainCaracter.getInventoryCursor())) {
-						MainCaracter.setInventoryItem(MainCaracter.getItemInHand(), MainCaracter.getInventoryCursor());
-						MainCaracter.deleteItemInHand();
+					MainCaracter.endInteract();
+					//MainConsole.Clear();
+					//MainTerminal.clear();
+					break;
+				case 'w':
+					if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_UP);
+					else activeChest->movecusor(GO_UP);
+					break;
+				case 'a':
+					if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_LEFT);
+					else activeChest->movecusor(GO_LEFT);
+					break;
+				case 's':
+					if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_DOWN);
+					else activeChest->movecusor(GO_DOWN);
+					break;
+				case 'd':
+					if (MainCaracter.getIsCursorInInventory()) MainCaracter.movecusor(GO_RIGHT);
+					else activeChest->movecusor(GO_RIGHT);
+					break;
+				case 'e':	// put Item In hand / set item out of hand
+					MainCaracter.MoveItem();
+					break;
+				case 'q':
+					if (MainCaracter.getIsCursorInInventory()) {
+						MainCaracter.setIsCursorInInventory(false);
+						activeChest->setIsCursorInChest(true);
 					}
+					else {
+						MainCaracter.setIsCursorInInventory(true);
+						activeChest->setIsCursorInChest(false);
+					}
+
+					break;
+				case 'r': // pickup / drop Item
+					//if(GlobalWorld.EntetyMgr.getItem(MainCaracter.getX(), MainCaracter.getY()))
+					MainCaracter.dropItem(&GlobalWorld.EntetyMgr);
+					break;
+				default:
+					showMsgBox(0);
+					break;
 				}
-				else { // put Item in Hand
-					MainCaracter.setItemInHand(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()));
-					MainCaracter.removeInventoryItem(MainCaracter.getInventoryCursor());
+
+				if (MainCaracter.getIsChestOpen()) {
+					MainCaracter.getActiveChest()->PrintInventory(&MainConsole, 0, 17);
+					MainCaracter.PrintInventory(&MainConsole, 20, 17);
 				}
-				break;
-			case 'r': // pickup / drop Item
-				MainCaracter.dropItem(&GlobalWorld.EntetyMgr);
-				break;
-			default:
-				showMsgBox(0);
-				break;
 			}
 
-			if (MainCaracter.getIsInventoryOpen()) {
-				MainCaracter.PrintInventory(&MainConsole, 0, 20);
-			}
-			delete testItem;
-		}
 
-		else if (MainCaracter.getIsDialogeActive()) {
-			switch (menu) {
-			case '1':
-				MainCaracter.getActiveNPC()->optionSelected(1);
-				break;
-			case '2':
-				MainCaracter.getActiveNPC()->optionSelected(2);
-				break;
-			case '3':
-				MainCaracter.getActiveNPC()->optionSelected(3);
-				break;
-			case '4':
-				MainCaracter.getActiveNPC()->optionSelected(4);
-				break;
-			case '5':
-				MainCaracter.getActiveNPC()->optionSelected(5);
-				break;
-			case '6':
-				MainCaracter.getActiveNPC()->optionSelected(6);
-				break;
-			case '7':
-				MainCaracter.getActiveNPC()->optionSelected(7);
-				break;
-			case '8':
-				MainCaracter.getActiveNPC()->optionSelected(8);
-				break;
-			case '9':
-				MainCaracter.getActiveNPC()->optionSelected(9);
-				break;
-			case 'f':
-				MainCaracter.endInteract();
-				break;
-			default:
-				showMsgBox(0);
-				break;
+			else if (MainCaracter.getIsInventoryOpen()) {
+				ItemClass* testItem = new ItemClass;
+				switch (menu) {
+				case 'i':
+					MainCaracter.closeInventory();
+					MainCaracter.setIsCursorInInventory(false);
+					break;
+				case 'w':
+					MainCaracter.movecusor(GO_UP);
+					break;
+				case 'a':
+					MainCaracter.movecusor(GO_LEFT);
+					break;
+				case 's':
+					MainCaracter.movecusor(GO_DOWN);
+					break;
+				case 'd':
+					MainCaracter.movecusor(GO_RIGHT);
+					break;
+				case 'e':	// put Item In hand / set item out of hand
+					if (MainCaracter.isItemInHandExistant()) { // put Item out of hand
+						if (!MainCaracter.isInventoryItemExistant(MainCaracter.getInventoryCursor())) {
+							MainCaracter.setInventoryItem(MainCaracter.getItemInHand(), MainCaracter.getInventoryCursor());
+							MainCaracter.deleteItemInHand();
+						}
+					}
+					else { // put Item in Hand
+						MainCaracter.setItemInHand(MainCaracter.getInventoryItem(MainCaracter.getInventoryCursor()));
+						MainCaracter.removeInventoryItem(MainCaracter.getInventoryCursor());
+					}
+					break;
+				case 'r': // pickup / drop Item
+					MainCaracter.dropItem(&GlobalWorld.EntetyMgr);
+					break;
+				case 'q': // equip Item
+					MainCaracter.equipItem(MainCaracter.getInventoryCursor());
+					break;
+				case '1':
+					MainCaracter.unequipItem(0);
+					break;
+				case '2':
+					MainCaracter.unequipItem(1);
+					break;
+				case '3':
+					MainCaracter.unequipItem(2);
+					break;
+				case '4':
+					MainCaracter.unequipItem(3);
+					break;
+				default:
+					showMsgBox(0);
+					break;
+				}
+
+				if (MainCaracter.getIsInventoryOpen()) {
+					MainCaracter.PrintInventory(&MainConsole, 0, 20);
+				}
+				delete testItem;
 			}
 
-			if (MainCaracter.getIsDialogeActive()) {
-				MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
+			else if (MainCaracter.getIsDialogeActive()) {
+				switch (menu) {
+				case '1':
+					MainCaracter.getActiveNPC()->optionSelected(1, &MainCaracter);
+					break;
+				case '2':
+					MainCaracter.getActiveNPC()->optionSelected(2, &MainCaracter);
+					break;
+				case '3':
+					MainCaracter.getActiveNPC()->optionSelected(3, &MainCaracter);
+					break;
+				case '4':
+					MainCaracter.getActiveNPC()->optionSelected(4, &MainCaracter);
+					break;
+				case '5':
+					MainCaracter.getActiveNPC()->optionSelected(5, &MainCaracter);
+					break;
+				case '6':
+					MainCaracter.getActiveNPC()->optionSelected(6, &MainCaracter);
+					break;
+				case '7':
+					MainCaracter.getActiveNPC()->optionSelected(7, &MainCaracter);
+					break;
+				case '8':
+					MainCaracter.getActiveNPC()->optionSelected(8, &MainCaracter);
+					break;
+				case '9':
+					MainCaracter.getActiveNPC()->optionSelected(9, &MainCaracter);
+					break;
+				case 'f':
+					MainCaracter.endInteract();
+					break;
+				default:
+					showMsgBox(0);
+					break;
+				}
+
+				if (MainCaracter.getIsDialogeActive()) {
+					MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
+				}
 			}
 		}
 	}

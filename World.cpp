@@ -58,6 +58,8 @@ std::wstring WorldClass::getObjectSprite(int ObjectID) {
 		return L"#";
 	case 3:	// NPC %
 		return L"%";
+	case 5:	// NPC Hostile %
+		return L"%";
 	case 100: //Player *
 		return L"*";
 
@@ -77,6 +79,8 @@ WORD WorldClass::getObjectColor(int ObjectID) {
 		return 0x07;
 	case 3:	// NPC %
 		return 0x07;
+	case 5:	// NPC Hostile %
+		return 0x04;
 	case 100: //Player *
 		return 0x07;
 

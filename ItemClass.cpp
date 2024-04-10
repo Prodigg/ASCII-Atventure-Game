@@ -2,6 +2,15 @@
 
 /////////// IremClass \\\\\\\\\\
 
+ItemClass::ItemClass() : ItemID(-1), Icon(L"?"), ItemType(0) {}
+ItemClass::ItemClass(int ItemType, int ItemID, std::wstring _Icon, int DamageModefyer, int ArmorModefyer, int HealthModefyer) :
+ItemID(ItemID),
+Icon(_Icon), 
+DamageModefyer(DamageModefyer),
+ArmorModefyer(ArmorModefyer),
+HealthModefyer(HealthModefyer),
+ItemType(ItemType) {}
+
 int ItemClass::getItemID() {
 	return ItemClass::ItemID;
 }
@@ -17,5 +26,16 @@ std::wstring ItemClass::getIcon() {
 }
 
 bool ItemClass::operator==(const ItemClass& other) const {
-	return ItemID == other.ItemID && Icon == other.Icon && isWeapon == other.isWeapon && isArmor == other.isArmor && isRing == other.isRing && isMisc == other.isMisc;
+	return ItemID == other.ItemID && Icon == other.Icon && ItemType == other.ItemType;
+}
+bool ItemClass::getIsInPlayerInventory() {
+	return isItemInInventory;
+}
+
+void ItemClass::setIsInPlayerInventory(bool val) {
+	isItemInInventory = val;
+}
+
+int ItemClass::getItemType() {
+	return ItemType;
 }

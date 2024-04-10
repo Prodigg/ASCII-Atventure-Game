@@ -19,6 +19,7 @@ enum Directions {
 
 class InventoryClass : public ContainerCursor {
 public:
+	InventoryClass(bool isMainCaracter);
 	InventoryClass();
 	void setInventoryItem(ItemClass* Item, int index);
 	ItemClass* getInventoryItem(int index);
@@ -30,7 +31,6 @@ public:
 	void PrintInventory(Console* console, int x, int y);
 	bool isInventoryItemExistant(int Index);
 
-	void setEquipment(ItemClass* Item, int Index);
 	ItemClass* getEquipment(int Index);
 
 	bool setItemInHand(ItemClass* Item);
@@ -44,6 +44,8 @@ public:
 	int getPrevItemPos();
 	void setPrevInvPos(int val);
 
+protected:
+	void setEquipment(ItemClass* Item, int Index);
 
 private:
 	ItemClass inventoryList[16];
@@ -61,10 +63,25 @@ private:
 	bool isInventoryOpen = false;
 	int prevItemPos = 0;
 	bool isCursorInInventory = false;
+	bool isMainCaracterInventory = false;
 
 
 };
 
+//************ Player Config ********* \\
+
+#define PLAYER_DEAFULT_HP 100
+#define PLAYER_DEAFULT_DAMAGE 10
+#define PLAYER_DEAFULT_ARMOR 50
+#define PLAYER_DEAFULT_CHANCE_TO_HIT 3
+
+/*
+* Battle System:
+* 
+* Armor: lowers damage and checks if attack hits
+* Damage: originalDamage - Armor = newDamage
+* 
+*/
 
 class Player : public InventoryClass {
 public:
@@ -86,6 +103,11 @@ public:
 	void MoveItem();
 
 	bool getIsDialogeActive();
+
+	void equipItem(int InventoryIndex);
+	void unequipItem(int EquipSlot);
+
+	void attack(WorldClass* World);
 private:
 	int xPosition = xSrartPosition;
 	int yPosition = ySrartPosition;
@@ -100,6 +122,13 @@ private:
 	bool isDialogeActive = false;
 
 	NPC* ActiveNPC;
+
+	// ******* Stats ********* \\
+
+	int health = PLAYER_DEAFULT_HP;
+	int Armor = PLAYER_DEAFULT_ARMOR;
+	int Damage = PLAYER_DEAFULT_DAMAGE;
+	int chanceToHit = PLAYER_DEAFULT_CHANCE_TO_HIT;
 };
 
 

@@ -151,7 +151,9 @@ void DialogeBox::display(int x, int y, Console* console) {
 	}
 	TextBoxFormate.push_back(TEXT_SEPERATOR);
 	for (size_t i = 0; i < Options.at(currentPage).size(); i++) { // options
-		TextBoxFormate.push_back(TEXT_BODY);
+		if(DisabledOptions[i] == false) {
+			TextBoxFormate.push_back(TEXT_BODY);
+		}
 	}
 	TextBoxFormate.push_back(TEXT_END);
 
@@ -176,29 +178,45 @@ void DialogeBox::display(int x, int y, Console* console) {
 		}
 	}
 	for (size_t i = 0; i < Options.at(currentPage).size(); i++) {
-		if (Options.at(currentPage).at(i).Text.size() + 4 > longestString) {		// new longest string
+		if (Options.at(currentPage).at(i).Text.size() + 4 > longestString && DisabledOptions[i] == false) {		// new longest string
 			longestString = Options.at(currentPage).at(i).Text.size();
 		}
 	}
 
 	// construct Options 
 	for (size_t i = 0; i < Options.at(currentPage).size(); i++) {
-		std::wstring tmpString = L"";
-		tmpString += Options.at(currentPage).at(i).Text;
+		if (DisabledOptions[i] == false) {
+			std::wstring tmpString = L"";
+			tmpString += Options.at(currentPage).at(i).Text;
 
-		// fill empty space
-		for (size_t t = 0; t < longestString - Options.at(currentPage).at(i).Text.size() - 4; t++) {
+			// fill empty space
+			for (size_t t = 0; t < longestString - Options.at(currentPage).at(i).Text.size() - 4; t++) {
+				tmpString += L" ";
+			}
+			// push option at the end
+			tmpString += L"| ";
+			tmpString += std::to_wstring(i + 1);
 			tmpString += L" ";
+			DisplayTextBox->setText(MainText.at(currentPage).size() + i + 2, 1, tmpString);
 		}
-		// push option at the end
-		tmpString += L"| ";
-		tmpString += std::to_wstring(i + 1);
-		tmpString += L" ";
-		DisplayTextBox->setText(MainText.at(currentPage).size() + i + 2, 1, tmpString);
 	}
 	DisplayTextBox->display(x, y, console);
 }
 
 Option* DialogeBox::getOptions(int page, int option) {
 	return &Options.at(page).at(option-1);
+}
+
+bool DialogeBox::isOptionAvalable(int option) {
+	if (Options.at(currentPage).size() < option - 1) return false;
+	if (DisabledOptions[option - 1] == true) return false;
+	return true;
+}
+
+void DialogeBox::DisableOption(int option) {
+	DisabledOptions[option] = true;
+}
+
+void DialogeBox::enableOption(int option) {
+	DisabledOptions[option] = false;
 }
