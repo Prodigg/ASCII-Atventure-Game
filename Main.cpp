@@ -167,7 +167,7 @@ int main() {
 	int x;
 	int y;
 
-	Window TestWindow(300, 500, &MainConsole, PRINT_ARRAY_X, PRINT_ARRAY_Y);
+	//Window TestWindow(300, 500, &MainConsole, PRINT_ARRAY_X, PRINT_ARRAY_Y);
 
 	ItemClass TesttmpItem;
 	TesttmpItem.SetItem(101, L"O");
@@ -188,11 +188,11 @@ int main() {
 
 	Quest* TestQuest = new Quest(TestQuestObjectivs, &GlobalQuestMgr);
 
+	//HostileNPC* TestHostileNPC = new HostileNPC(12, 12, GlobalWorld.getEntetyMgr(), &GlobalWorld, &MainCaracter, 100, 10, 5, 3);
 
 
 	while (true) {
 
-		if (MainTerminal.isKeyPressed()) {
 			x = MainCaracter.getX();
 			y = MainCaracter.getY();
 
@@ -203,13 +203,13 @@ int main() {
 			drawMenu(x, y);
 			MainTerminal.print();
 
-			TestWindow.render();
+			//TestWindow.render();
 
-			while(!TestWindow.handleEvents()) { }
-			//menu = MainTerminal.getKeyAction();
-			menu = TestWindow.getKeyAction()->key;
+			//while(!TestWindow.handleEvents()) { }
+			menu = MainTerminal.getKeyAction();
+			//menu = TestWindow.getKeyAction()->key;
 
-			TestWindow.clearscreen();
+			//TestWindow.clearscreen();
 			MainConsole.Clear();
 
 			MainConsole.ClearColor();
@@ -415,6 +415,5 @@ int main() {
 					MainCaracter.getActiveNPC()->display(0, 17, &MainConsole);
 				}
 			}
-		}
 	}
 }

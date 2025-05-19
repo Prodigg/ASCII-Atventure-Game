@@ -141,6 +141,7 @@ void Terminal::resizeWindow(int width, int hight) {
 
 /////////////////// Window \\\\\\\\\\\\\\\
 
+/*
 
 Window::Window(int sizeX, int sizeY, Console* console, int screensizeX, int screensizeY) :
 console(console),
@@ -210,7 +211,7 @@ void Window::render() {
 	int lastTval = 0;
 
 	for (size_t i = 0; i < Window::screensizeX; i++) {
-		for (size_t t = 0; t < Window::screensizeY; t++) {
+		for (size_t t = 0; t < Window::screensizeY; t++) 
 			if (!((Window::console->getChar(i, t) == L"}") && Window::console->getColor(i, t) == 0x07)) {
 				//TODO: add color
 				sf::Text drawText(Window::console->getChar(i, t), font, 20);
@@ -231,4 +232,4 @@ void Window::render() {
 
 void Window::clearscreen() {
 	window_.clear();
-}
+}*/

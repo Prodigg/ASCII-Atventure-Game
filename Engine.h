@@ -6,7 +6,7 @@
 
 #include <string>
 #include <Windows.h>
-#include <SFML/Graphics.hpp>
+//#include <SFML/Graphics.hpp>
 
 #define PRINT_ARRAY_X 50
 #define PRINT_ARRAY_Y 80
@@ -57,7 +57,7 @@ struct KeyEventData {
 	bool control;
 	bool shift;
 };
-
+/*
 class Window {
 public:
 	Window(int sizeX, int sizeY, Console* console, int screensizeX, int screensizeY);
@@ -78,7 +78,7 @@ private:
 	sf::Event event_;
 	KeyEventData keyData;
 	std::wstring ScreenBuffer;
-};
+};*/
 
 
 #endif // !__ENGINE__

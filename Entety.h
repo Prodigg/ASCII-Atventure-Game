@@ -7,6 +7,8 @@
 #include "Engine.h"
 #include "ContainerCursor.h"
 #include "TextBox.h"
+//#include "World.h"
+//#include "Player.h"
 
 #define CHEST_X_SIZE 4
 #define CHEST_Y_SIZE 4
@@ -22,6 +24,8 @@ public:
 	bool isBlocking();
 
 	WorldObject(int ObjectID, int x, int y, bool blocking);
+
+	virtual void update() { /* Do nothing */ }
 
 private:
 	int xPosition = 0;
@@ -68,7 +72,8 @@ struct WorldEntetyData {
 enum ENTETY_TYPES {
 	ENTETY_CHEST = 2,
 	ENTETY_NPC = 3,
-	ENTETY_ITEM_ON_FLOOR = 4
+	ENTETY_ITEM_ON_FLOOR = 4,
+	ENTETY_HOSTILE_NPC = 5
 };
 
 class WorldEntetymanager {
@@ -97,6 +102,7 @@ public:
 	void unregisterEntety(int EntetyID);
 	void* getEntetyPtr(int x, int y);
 
+	void updateAllEntetys();
 
 private:
 	/*
@@ -127,6 +133,7 @@ public:
 	bool checkForItem(int ItemID);
 	int getNPCState();
 	void setNPCState(int val);
+	void updatePtr() {};
 
 private:
 	int lastMove = 0;
@@ -141,26 +148,47 @@ private:
 	std::vector<NPCItemSaveData> Inventory;
 };  
 
+enum HOSTILE_NPC_STATES {
+	HOSTILE_NPC_IDLE = 0,
+	HOSTILE_NPC_ATTACKING = 1,
+	HOSTILE_NPC_FLEE = 2
+};
+
+#define NPC_HOSTILE_RADIUS 2
+/*
 class HostileNPC : public WorldObject {
 public:
-	HostileNPC(int x, int y, WorldEntetymanager* EntetyMgr, int HP, int Damage, int Armor, int chanceToHit);
+	HostileNPC(int x, int y, WorldEntetymanager* EntetyMgr, WorldClass* World, Player* player, int HP, int Damage, int Armor, int chanceToHit);
 	~HostileNPC();
 	AliveEntetyStats* getStats();
-	bool attached(int damage);
+	bool attacked(int damage);
 	void damage(int damage);
+
+	void setHostileNPCState(int state);
+	int getHostileNPCState();
+
+	bool move(int Direction);
 
 	/*
 	* is the Update function for this NPC
 	* Checks if it is dead and moves NPC
-	*/
-	void update();
+	
+	void update(int PotentialMove);
 private:
 	AliveEntetyStats stats;
 	int ChanceToHit;
 
 	int EntetyID;
 	WorldEntetymanager* EntetyMgr;
-};
+
+	int HostileNPCState = 0;
+
+	WorldClass* World;
+	Player* player;
+
+	int lastMove = 0;
+
+};*/
 
 
 

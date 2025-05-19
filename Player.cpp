@@ -312,8 +312,8 @@ void Player::attack(WorldClass* World) {
 	if (AttackEntetyX == -1 || AttackEntetyY == -1) return;
 
 	// getFoundEntety
-	HostileNPC* AttackEntety = static_cast<HostileNPC*>(World->EntetyMgr.getEntetyPtr(AttackEntetyX, AttackEntetyY));
-	AttackEntety->damage(Damage);
+	//HostileNPC* AttackEntety = static_cast<HostileNPC*>(World->EntetyMgr.getEntetyPtr(AttackEntetyX, AttackEntetyY));
+	//AttackEntety->damage(Damage);
 
 	return;
 }

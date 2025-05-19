@@ -400,6 +400,15 @@ std::wstring WorldEntetymanager::getItemSprite(int x, int y) {
 	return TmpItemPtr->getItem()->getIcon();
 }
 
+void WorldEntetymanager::updateAllEntetys() {
+	for (size_t i = 0; i < EntetyDataArray.size(); i++) {
+		if (EntetyDataArray.at(i).Entety_Type == ENTETY_HOSTILE_NPC) { // hostile NPC
+			//static_cast<HostileNPC*>(EntetyDataArray.at(i).EntetyPtr)->update();
+		}
+	}
+	return;
+}
+
 //////////////// NPC \\\\\\\\\\\\\\\\
 
 enum NPCDialogActions {
@@ -538,10 +547,13 @@ ItemClass* ItemOnFloor::getItem() {
 
 ///////////// Hostile NPC \\\\\\\\\\\\\\\\\\\
 
+/*
 
-HostileNPC::HostileNPC(int x, int y, WorldEntetymanager* EntetyMgr, int HP, int Damage, int Armor, int chanceToHit) :
+HostileNPC::HostileNPC(int x, int y, WorldEntetymanager* EntetyMgr, WorldClass* World, Player* player, int HP, int Damage, int Armor, int chanceToHit) :
 	WorldObject(5, x, y, true), 
-	EntetyMgr(EntetyMgr) {
+	EntetyMgr(EntetyMgr),
+	World(World),
+	player(player) {
 	EntetyID = EntetyMgr->registerEntety(x, y, 5, this);
 	stats.health = HP;
 	stats.armor = Armor;
@@ -557,7 +569,7 @@ AliveEntetyStats* HostileNPC::getStats() {
 	return &stats;
 }
 
-bool HostileNPC::attached(int damage) {
+bool HostileNPC::attacked(int damage) {
 	// generate random number
 	int HitNum = (rand() % ChanceToHit) + 1;
 
@@ -574,13 +586,74 @@ bool HostileNPC::attached(int damage) {
 
 void HostileNPC::damage(int damage){
 	stats.health = stats.health - damage;
+	HostileNPCState = HOSTILE_NPC_ATTACKING;
 }
 
-void HostileNPC::update() {
+void HostileNPC::update(int PotentialMove) {
 	// check if it is dead
 	if (stats.health <= 0) { // NPC dead
 		delete this; // selfdestruct
 	}
 
-	// TODO: add moving
+	// update state
+
+	if (abs(player->getX() - getxPosition()) < NPC_HOSTILE_RADIUS && abs(player->getY() - getyPosition()) < NPC_HOSTILE_RADIUS) { // getAgressive
+		HostileNPCState = HOSTILE_NPC_ATTACKING;
+	}
+	else {
+		HostileNPCState = HOSTILE_NPC_IDLE;
+	}
+
+	switch (HostileNPCState) {
+	case HOSTILE_NPC_IDLE:
+		// do nothing
+		break;
+	case HOSTILE_NPC_ATTACKING:
+		// check if it can attack
+		if (abs(player->getX() - getxPosition()) < 1 && abs(player->getY() - getyPosition()) < 1) { // attack
+			// TODO: attack player
+			break;
+		}
+		// move to player
+		move(World->findShortestDirection(getxPosition(), getyPosition(), player->getX(), player->getY(), lastMove));
+		break;
+	case HOSTILE_NPC_FLEE:
+		// TODO: add flee?
+		break;
+		default: 
+		break;
+	}
 }
+
+void HostileNPC::setHostileNPCState(int state) {
+	HostileNPCState = state;
+}
+
+int HostileNPC::getHostileNPCState() {
+	return HostileNPCState;
+}
+
+bool HostileNPC::move(int Direction) {
+	switch (Direction) { 
+	case 0: // right
+		if (!World->isBlocking(getxPosition() + 1, getyPosition())) return false;
+		setPosition(getxPosition() + 1, getyPosition());
+		break;
+	case 1: // left
+		if (!World->isBlocking(getxPosition() - 1, getyPosition())) return false;
+		setPosition(getxPosition() - 1, getyPosition());
+		break;
+	case 2: // Down 
+		if (!World->isBlocking(getxPosition(), getyPosition() + 1)) return false;
+		setPosition(getxPosition() + 1, getyPosition());
+		break;
+	case 3: // up
+		if (!World->isBlocking(getxPosition(), getyPosition() - 1)) return false;
+		setPosition(getxPosition() - 1, getyPosition());
+		break;
+	default:
+		return false;
+		break;
+	}
+	return true;
+}*/
